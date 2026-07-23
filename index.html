@@ -5,20 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <!-- Primary Meta Tags -->
-  <title>My Fitness & Nutrition Tracker Dashboard</title>
-  <meta name="title" content="My Fitness & Nutrition Tracker Dashboard">
-  <meta name="description" content="2-Week fitness progress tracker: 4-run treadmill split, daily 3-egg nutrition consistency, meal scores, and DOMS recovery updates.">
+  <title>Road to KLHalf 2026 - Fitness & Nutrition Tracker</title>
+  <meta name="title" content="Road to KLHalf 2026 - Fitness & Nutrition Tracker">
+  <meta name="description" content="Countdown to KL Half 2026 (15 Nov 4 AM) & 2-Week fitness progress tracker: 4-run treadmill split, daily 3-egg nutrition consistency, meal scores, and recovery updates.">
 
   <!-- Open Graph / Facebook / WhatsApp / Telegram / LinkedIn -->
   <meta property="og:type" content="website">
-  <meta property="og:title" content="My Fitness & Nutrition Progress Dashboard 🏃‍♂️🍳">
-  <meta property="og:description" content="Live tracking my 4-run weekly treadmill split, high-protein nutrition logs, and recovery progress. Check out my latest stats!">
+  <meta property="og:title" content="Road to KLHalf 2026 🏃‍♂️🏁">
+  <meta property="og:description" content="Tracking my training split and recovery for KL Half Marathon 2026. Live stats, treadmill runs, and high-protein meal logs!">
   <meta property="og:image" content="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=80">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="My Fitness & Nutrition Progress Dashboard 🏃‍♂️🍳">
-  <meta name="twitter:description" content="Live tracking my 4-run weekly treadmill split, high-protein nutrition logs, and recovery progress.">
+  <meta name="twitter:title" content="Road to KLHalf 2026 🏃‍♂️🏁">
+  <meta name="twitter:description" content="Tracking my training split and recovery for KL Half Marathon 2026. Live stats, treadmill runs, and high-protein meal logs!">
   <meta name="twitter:image" content="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=80">
 
   <!-- Tailwind CSS & FontAwesome -->
@@ -55,11 +55,11 @@
       <div>
         <div class="flex items-center gap-3">
           <span class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
-            <i class="fa-solid fa-person-running text-2xl"></i>
+            <i class="fa-solid fa-flag-checkered text-2xl"></i>
           </span>
           <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Fitness & Nutrition Tracker</h1>
-            <p class="text-slate-400 text-sm mt-0.5">4-Run Weekly Split & Progress Dashboard</p>
+            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Road to KLHalf 2026</h1>
+            <p class="text-slate-400 text-sm mt-0.5">4-Run Weekly Split & Race Prep Dashboard</p>
           </div>
         </div>
       </div>
@@ -79,6 +79,40 @@
         </div>
       </div>
     </header>
+
+    <!-- COUNTDOWN TIMER BANNER -->
+    <div class="bg-gradient-to-r from-emerald-950/80 via-slate-800/90 to-indigo-950/80 border border-emerald-500/30 p-5 rounded-2xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+      <div class="flex items-center gap-3 text-center md:text-left">
+        <span class="p-3 bg-emerald-500/20 text-emerald-400 rounded-2xl border border-emerald-500/30 text-xl hidden sm:inline-block">
+          <i class="fa-solid fa-stopwatch text-2xl"></i>
+        </span>
+        <div>
+          <span class="text-xs font-semibold text-emerald-400 tracking-wider uppercase">Race Day Countdown</span>
+          <h2 class="text-lg md:text-xl font-bold text-white">KL Half Marathon 2026 (21.1KM)</h2>
+          <p class="text-slate-400 text-xs">Flag Off Target: <strong class="text-slate-200">Nov 15, 2026 at 4:00 AM (KL Time)</strong></p>
+        </div>
+      </div>
+
+      <!-- COUNTDOWN DISPLAY -->
+      <div class="grid grid-cols-4 gap-2 sm:gap-3 text-center w-full md:w-auto">
+        <div class="bg-slate-900/80 border border-slate-700/80 px-3 py-2.5 rounded-xl min-w-[65px]">
+          <span id="timerDays" class="text-xl sm:text-2xl font-extrabold text-emerald-400 font-mono">00</span>
+          <span class="block text-[10px] text-slate-400 uppercase font-medium mt-0.5">Days</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-700/80 px-3 py-2.5 rounded-xl min-w-[65px]">
+          <span id="timerHours" class="text-xl sm:text-2xl font-extrabold text-white font-mono">00</span>
+          <span class="block text-[10px] text-slate-400 uppercase font-medium mt-0.5">Hours</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-700/80 px-3 py-2.5 rounded-xl min-w-[65px]">
+          <span id="timerMins" class="text-xl sm:text-2xl font-extrabold text-white font-mono">00</span>
+          <span class="block text-[10px] text-slate-400 uppercase font-medium mt-0.5">Mins</span>
+        </div>
+        <div class="bg-slate-900/80 border border-slate-700/80 px-3 py-2.5 rounded-xl min-w-[65px]">
+          <span id="timerSecs" class="text-xl sm:text-2xl font-extrabold text-amber-400 font-mono">00</span>
+          <span class="block text-[10px] text-slate-400 uppercase font-medium mt-0.5">Secs</span>
+        </div>
+      </div>
+    </div>
 
     <!-- STATS OVERVIEW -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -557,6 +591,33 @@
 
     // Initialize on load
     renderCalendar();
+
+    function updateCountdown() {
+      const raceDate = new Date("2026-11-15T04:00:00+08:00").getTime();
+      const now = new Date().getTime();
+      const diff = raceDate - now;
+
+      if (diff <= 0) {
+        document.getElementById('timerDays').innerText = "00";
+        document.getElementById('timerHours').innerText = "00";
+        document.getElementById('timerMins').innerText = "00";
+        document.getElementById('timerSecs').innerText = "00";
+        return;
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const secs = Math.floor((diff % (1000 * 60)) / 1000);
+
+      document.getElementById('timerDays').innerText = String(days).padStart(2, '0');
+      document.getElementById('timerHours').innerText = String(hours).padStart(2, '0');
+      document.getElementById('timerMins').innerText = String(mins).padStart(2, '0');
+      document.getElementById('timerSecs').innerText = String(secs).padStart(2, '0');
+    }
+
+    setInterval(updateCountdown, 1000);
+    updateCountdown();
   </script>
 </body>
 </html>
