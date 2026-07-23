@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fitness & Nutrition Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(229, 231, 235, 0.8);
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 8px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen p-4 md:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- HEADER -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-800/90 border border-slate-700/80 p-6 rounded-2xl shadow-xl backdrop-blur-md">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="p-2.5 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+            <i class="fa-solid fa-person-running text-2xl"></i>
+          </span>
+          <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Fitness & Nutrition Tracker AKAKAKKAKAKA</h1>
+            <p class="text-slate-400 text-sm mt-0.5">4-Run Weekly Split & Progress Dashboard</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 md:mt-0 flex flex-wrap gap-3 text-xs md:text-sm font-medium">
+        <div class="px-3.5 py-2 rounded-xl bg-slate-700/60 border border-slate-600/50 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-day text-emerald-400"></i>
+          <span>Today: <strong class="text-white">Thu, Jul 23</strong></span>
+        </div>
+        <div class="px-3.5 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 flex items-center gap-2">
+          <i class="fa-solid fa-bed text-indigo-400"></i>
+          <span>Status: <strong>Full Rest Day</strong></span>
+        </div>
+        <div class="px-3.5 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 flex items-center gap-2">
+          <i class="fa-solid fa-egg text-amber-400"></i>
+          <span>Morning Anchor: <strong>3 Half-Boiled Eggs</strong></span>
+        </div>
+      </div>
+    </header>
+
+    <!-- STATS OVERVIEW -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl flex items-center gap-4">
+        <div class="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl">
+          <i class="fa-solid fa-fire text-xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 uppercase font-semibold">Weekly Goal</p>
+          <p class="text-lg font-bold text-white">4 Treadmill Runs</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl flex items-center gap-4">
+        <div class="p-3 bg-blue-500/10 text-blue-400 rounded-xl">
+          <i class="fa-solid fa-gauge-high text-xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 uppercase font-semibold">Easy Base Pace</p>
+          <p class="text-lg font-bold text-white">Speed 6.2 – 6.4</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl flex items-center gap-4">
+        <div class="p-3 bg-purple-500/10 text-purple-400 rounded-xl">
+          <i class="fa-solid fa-utensils text-xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 uppercase font-semibold">Avg Meal Score</p>
+          <p class="text-lg font-bold text-white">91 / 100</p>
+        </div>
+      </div>
+
+      <div class="bg-slate-800/60 border border-slate-700/60 p-4 rounded-xl flex items-center gap-4">
+        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-xl">
+          <i class="fa-solid fa-notes-medical text-xl"></i>
+        </div>
+        <div>
+          <p class="text-xs text-slate-400 uppercase font-semibold">Current State</p>
+          <p class="text-lg font-bold text-white">Mild Glute DOMS</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CALENDAR GRID CONTAINER -->
+    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-6 shadow-xl backdrop-blur-md">
+      
+      <!-- CONTROLS & FILTER -->
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-regular fa-calendar-days text-emerald-400"></i> July 2026 Tracking Sheet
+          </h2>
+          <p class="text-slate-400 text-xs mt-1">Select any day to inspect detailed logs, workout feedback, and meals.</p>
+        </div>
+
+        <div class="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700">
+          <button id="viewWeek1" onclick="switchWeek(1)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md">
+            Week 1 (Jul 13 - 19)
+          </button>
+          <button id="viewWeek2" onclick="switchWeek(2)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white">
+            Week 2 (Jul 20 - 26)
+          </button>
+        </div>
+      </div>
+
+      <!-- CALENDAR GRID -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-7 gap-3" id="calendarGrid">
+        <!-- JS will dynamically render calendar days here -->
+      </div>
+    </div>
+
+    <!-- DETAILED DAY INSPECTOR MODAL/PANEL -->
+    <div id="dayDetailPanel" class="bg-slate-800/90 border border-slate-700 rounded-2xl p-6 shadow-2xl relative transition-all">
+      <div class="flex flex-col lg:flex-row justify-between gap-6" id="detailContent">
+        <!-- JS populates details -->
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const daysData = [
+      // WEEK 1
+      {
+        id: "2026-07-13",
+        dateStr: "Mon, Jul 13",
+        week: 1,
+        dayName: "Mon",
+        dayNum: "13",
+        type: "Run Day",
+        title: "Treadmill Run #1",
+        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        workout: "Treadmill Walk / Jog Intervals",
+        workoutDetail: "Introductory session into structured treadmill routines.",
+        feedback: "Felt tough initially, starting to build consistent habit.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Tauhu Keras, 2 Eggs, Ayam Pedas, Broccoli",
+        dinner: "Air-fried Chicken Breast + Mixed Veggies",
+        mealScore: 92,
+        highlight: "Started structured 4-run split tracking!"
+      },
+      {
+        id: "2026-07-14",
+        dateStr: "Tue, Jul 14",
+        week: 1,
+        dayName: "Tue",
+        dayNum: "14",
+        type: "Run Day",
+        title: "Treadmill Run #2",
+        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        workout: "Treadmill Interval Run",
+        workoutDetail: "Back-to-back run effort focusing on cardiovascular base.",
+        feedback: "Heavy legs near the end of session.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Tauhu Keras, 2 Eggs, Ayam Pedas, Broccoli",
+        dinner: "Air-fried Salmon + Microwaved Veggies",
+        mealScore: 94,
+        highlight: "Consistently hit high protein targets."
+      },
+      {
+        id: "2026-07-15",
+        dateStr: "Wed, Jul 15",
+        week: 1,
+        dayName: "Wed",
+        dayNum: "15",
+        type: "Strength",
+        title: "Darebee Bedside Routine",
+        badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+        workout: "3 Rounds: 15 Squats, 12 Glute Bridges, 30s Plank",
+        workoutDetail: "Bedside bodyweight active recovery session.",
+        feedback: "Light fatigue; good movement without joint impact.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Chicken Breast + Steamed Broccoli",
+        dinner: "Homemade Ayam Berempah + Veggies",
+        mealScore: 90,
+        highlight: "Kept treadmill off to rest running joints."
+      },
+      {
+        id: "2026-07-16",
+        dateStr: "Thu, Jul 16",
+        week: 1,
+        dayName: "Thu",
+        dayNum: "16",
+        type: "Rest Day",
+        title: "Full Rest & Recovery",
+        badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+        workout: "Zero Workouts (Full Rest)",
+        workoutDetail: "Muscle tissue rebuilding day.",
+        feedback: "Refreshed and ready for weekend runs.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Tauhu Keras + Chicken Breast",
+        dinner: "Salmon Fillet + Veggies",
+        mealScore: 95,
+        highlight: "Deep recovery sleep achieved."
+      },
+      {
+        id: "2026-07-17",
+        dateStr: "Fri, Jul 17",
+        week: 1,
+        dayName: "Fri",
+        dayNum: "17",
+        type: "Run Day",
+        title: "Treadmill Easy Base Run",
+        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        workout: "30 Min Base Run (Speed 6.2 - 6.4)",
+        workoutDetail: "Focus on controlled nasal breathing.",
+        feedback: "Steady effort, legs felt responsive.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Ayam Pedas + Broccoli + Tauhu",
+        dinner: "Air-fried Chicken Whole Leg + Veggies",
+        mealScore: 92,
+        highlight: "Maintained conversational pace smoothly."
+      },
+      {
+        id: "2026-07-18",
+        dateStr: "Sat, Jul 18",
+        week: 1,
+        dayName: "Sat",
+        dayNum: "18",
+        type: "Run Day",
+        title: "Speed Intervals (2.4km)",
+        badgeColor: "bg-amber-500/20 text-amber-300 border-amber-500/30",
+        workout: "Speed Intervals up to 7.0 speed (2.4 km distance)",
+        workoutDetail: "High effort speed intervals to build leg turnover.",
+        feedback: "Calf & muscle tightness noted post-run.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Post-Run Carbs + Chicken Breast",
+        dinner: "Grilled Fish + Mixed Greens",
+        mealScore: 88,
+        highlight: "Hit 2.4km total distance milestone!"
+      },
+      {
+        id: "2026-07-19",
+        dateStr: "Sun, Jul 19",
+        week: 1,
+        dayName: "Sun",
+        dayNum: "19",
+        type: "Rest Day",
+        title: "Active Rest Day",
+        badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30",
+        workout: "Light walking & stretching",
+        workoutDetail: "Low intensity family movement.",
+        feedback: "Slight tightness in calves dissipating.",
+        breakfast: "3 Half-Boiled Eggs + Coffee",
+        lunch: "Balanced Home Meal",
+        dinner: "Ayam Berempah + Mixed Veggies",
+        mealScore: 90,
+        highlight: "Recharged heading into Week 2."
+      },
+
+      // WEEK 2
+      {
+        id: "2026-07-20",
+        dateStr: "Mon, Jul 20",
+        week: 2,
+        dayName: "Mon",
+        dayNum: "20",
+        type: "Run Day",
+        title: "Base Run (Sustained 6.5)",
+        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        workout: "Treadmill Run (Peaked at 7.0, maintained 6.5)",
+        workoutDetail: "Stronger effort with improved cardiac stamina.",
+        feedback: "Legs felt far more resilient than previous week!",
+        breakfast: "3 Half-Boiled Eggs + 1/2 Coffee",
+        lunch: "Tauhu Keras, 2 Eggs, Ayam Pedas, Broccoli",
+        dinner: "Ayam Berempah Whole Leg + Salmon + Veggies",
+        mealScore: 95,
+        highlight: "Great leg resilience and pace control."
+      },
+      {
+        id: "2026-07-21",
+        dateStr: "Tue, Jul 21",
+        week: 2,
+        dayName: "Tue",
+        dayNum: "21",
+        type: "Run Day",
+        title: "Back-to-Back Run (2.5km)",
+        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        workout: "Treadmill 2.5km (Walk break at 16:30)",
+        workoutDetail: "Second consecutive running day.",
+        feedback: "Heavy legs, required mental push & walk break.",
+        breakfast: "3 Half-Boiled Eggs + 1/2 Coffee",
+        lunch: "Tauhu Keras, 2 Eggs, Ayam Pedas, Broccoli",
+        dinner: "Ayam Berempah Whole Leg + Microwaved Mixed Veggies",
+        mealScore: 95,
+        highlight: "Pushed distance to 2.5km despite fatigue!"
+      },
+      {
+        id: "2026-07-22",
+        dateStr: "Wed, Jul 22",
+        week: 2,
+        dayName: "Wed",
+        dayNum: "22",
+        type: "Strength",
+        title: "Darebee Strength Routine",
+        badgeColor: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+        workout: "3 Rounds: 15 Squats, 12 Glute Bridges, 30s Plank",
+        workoutDetail: "Active recovery strength work near bed.",
+        feedback: "Morning stiffness; glutes tightening on bridges.",
+        breakfast: "3 Half-Boiled Eggs + 1/2 Coffee",
+        lunch: "Skipped due to work crunch (Had Granola & Crackers)",
+        dinner: "Ayam Berempah Half Breast + Extra Veggies",
+        mealScore: 82,
+        highlight: "Resisted 12:42 AM Maggi craving to prioritize sleep!"
+      },
+      {
+        id: "2026-07-23",
+        dateStr: "Thu, Jul 23",
+        week: 2,
+        dayName: "Thu",
+        dayNum: "23",
+        type: "Rest Day",
+        title: "FULL REST DAY (Today)",
+        badgeColor: "bg-indigo-500/20 text-indigo-300 border-indigo-500/30 shadow-lg shadow-indigo-500/10",
+        isToday: true,
+        workout: "Zero Workouts (Full Rest & Rebuilding)",
+        workoutDetail: "Complete physical & joint rest to clear glute soreness.",
+        feedback: "Glutes aching at an annoying level (Normal DOMS adaptation).",
+        breakfast: "3 Half-Boiled Eggs",
+        lunch: "Ayam Berempah Half Breast + Kewpie Broccoli + Earl Grey Cake Slice",
+        dinner: "Ayam Berempah Half Breast + 2 Eggs + Veggies with 4-5 Spoons Masak Lemak Cili Api + 1 Hard-Boiled Egg",
+        mealScore: 88,
+        highlight: "High protein intake (chicken + 3 eggs) to rebuild glute muscle tissue!"
+      },
+      {
+        id: "2026-07-24",
+        dateStr: "Fri, Jul 24",
+        week: 2,
+        dayName: "Fri",
+        dayNum: "24",
+        type: "Upcoming",
+        title: "Easy Base Run (Target)",
+        badgeColor: "bg-emerald-500/20 text-emerald-300 border-emerald-500/30",
+        workout: "30 Min Treadmill (5m walk, 20m jog @ 6.2-6.4, 5m walk)",
+        workoutDetail: "Controlled, low-impact base run to ease glutes back into action.",
+        feedback: "Target session after glute recovery day.",
+        breakfast: "Planned: 3 Half-Boiled Eggs",
+        lunch: "Planned: Clean Protein & Greens",
+        dinner: "Planned: Lean Protein & Veggies",
+        mealScore: null,
+        highlight: "Target speed: 6.2 – 6.4 conversational pace with nose breathing."
+      },
+      {
+        id: "2026-07-25",
+        dateStr: "Sat, Jul 25",
+        week: 2,
+        dayName: "Sat",
+        dayNum: "25",
+        type: "Upcoming",
+        title: "Speed Intervals",
+        badgeColor: "bg-slate-700 text-slate-300 border-slate-600",
+        workout: "Treadmill Speed Intervals",
+        workoutDetail: "High effort speed work.",
+        feedback: "Upcoming session.",
+        breakfast: "Planned: 3 Half-Boiled Eggs",
+        lunch: "Planned: Optional Maggi + 2 Eggs (Post-run carb reward!)",
+        dinner: "Planned: Balanced dinner",
+        mealScore: null,
+        highlight: "Maggi option unlocked post-run!"
+      },
+      {
+        id: "2026-07-26",
+        dateStr: "Sun, Jul 26",
+        week: 2,
+        dayName: "Sun",
+        dayNum: "26",
+        type: "Upcoming",
+        title: "Active Rest Day",
+        badgeColor: "bg-slate-700 text-slate-300 border-slate-600",
+        workout: "Rest & Recovery Walking",
+        workoutDetail: "Low intensity.",
+        feedback: "Upcoming rest day.",
+        breakfast: "Planned: 3 Half-Boiled Eggs",
+        lunch: "Planned: Clean meal",
+        dinner: "Planned: Clean meal",
+        mealScore: null,
+        highlight: "Complete week 2 summary!"
+      }
+    ];
+
+    let currentWeek = 2;
+    let selectedDayId = "2026-07-23";
+
+    function renderCalendar() {
+      const grid = document.getElementById('calendarGrid');
+      grid.innerHTML = '';
+
+      const filteredDays = daysData.filter(d => d.week === currentWeek);
+
+      filteredDays.forEach(day => {
+        const isSelected = day.id === selectedDayId;
+        const isToday = day.isToday;
+
+        let borderClass = isSelected ? 'ring-2 ring-emerald-400 bg-slate-800' : 'bg-slate-800/50 hover:bg-slate-800/80';
+        if (isToday) borderClass += ' border-emerald-500/60';
+
+        let icon = 'fa-person-running text-emerald-400';
+        if (day.type === 'Strength') icon = 'fa-dumbbell text-purple-400';
+        if (day.type === 'Rest Day') icon = 'fa-bed text-indigo-400';
+        if (day.type === 'Upcoming') icon = 'fa-clock text-slate-500';
+
+        grid.innerHTML += `
+          <div onclick="selectDay('${day.id}')" class="p-3.5 rounded-xl border border-slate-700/70 cursor-pointer transition-all duration-200 flex flex-col justify-between h-36 ${borderClass}">
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-xs font-bold ${isToday ? 'text-emerald-400' : 'text-slate-400'}">${day.dayName} ${day.dayNum}</span>
+                <span class="text-[10px] px-2 py-0.5 rounded-full border ${day.badgeColor}">${day.type}</span>
+              </div>
+              <p class="text-xs font-semibold text-white line-clamp-1 mt-1">${day.title}</p>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center gap-1.5 text-[11px] text-slate-300">
+                <i class="fa-solid ${icon} text-xs"></i>
+                <span class="truncate">${day.workout.split('(')[0]}</span>
+              </div>
+              ${day.mealScore ? `
+                <div class="flex items-center gap-1.5 text-[10px] text-slate-400">
+                  <i class="fa-solid fa-utensils text-slate-500"></i>
+                  <span>Meal Score: <strong class="text-emerald-400">${day.mealScore}</strong></span>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+
+      renderDayDetails();
+    }
+
+    function selectDay(dayId) {
+      selectedDayId = dayId;
+      renderCalendar();
+    }
+
+    function switchWeek(weekNum) {
+      currentWeek = weekNum;
+      document.getElementById('viewWeek1').className = weekNum === 1 
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white';
+
+      document.getElementById('viewWeek2').className = weekNum === 2 
+        ? 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md'
+        : 'px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white';
+
+      const availableInWeek = daysData.filter(d => d.week === weekNum);
+      selectedDayId = availableInWeek[0].id;
+
+      renderCalendar();
+    }
+
+    function renderDayDetails() {
+      const day = daysData.find(d => d.id === selectedDayId);
+      const container = document.getElementById('detailContent');
+
+      if (!day) return;
+
+      container.innerHTML = `
+        <div class="flex-1 space-y-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <h3 class="text-2xl font-bold text-white">${day.dateStr}</h3>
+            <span class="px-3 py-1 rounded-full text-xs font-medium border ${day.badgeColor}">${day.type}</span>
+            ${day.isToday ? '<span class="bg-emerald-500 text-slate-950 text-xs px-2.5 py-0.5 rounded-full font-bold">TODAY</span>' : ''}
+          </div>
+
+          <div class="bg-slate-900/60 border border-slate-700/70 p-4 rounded-xl space-y-3">
+            <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2">
+              <i class="fa-solid fa-dumbbell text-purple-400"></i> Exercise & Movement Log
+            </h4>
+            <p class="text-base font-semibold text-emerald-300">${day.title}</p>
+            <p class="text-sm text-slate-300">${day.workout}</p>
+            <p class="text-xs text-slate-400 italic">${day.workoutDetail}</p>
+            
+            <div class="pt-2 border-t border-slate-800">
+              <p class="text-xs text-slate-400 font-medium">Body Feedback:</p>
+              <p class="text-xs text-amber-300 font-medium mt-0.5"><i class="fa-solid fa-comment-medical mr-1"></i> "${day.feedback}"</p>
+            </div>
+          </div>
+
+          <div class="bg-slate-900/60 border border-slate-700/70 p-4 rounded-xl">
+            <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2 mb-2">
+              <i class="fa-solid fa-lightbulb text-amber-400"></i> Daily Takeaway & Highlight
+            </h4>
+            <p class="text-sm text-slate-200">${day.highlight}</p>
+          </div>
+        </div>
+
+        <div class="flex-1 space-y-4">
+          <div class="bg-slate-900/60 border border-slate-700/70 p-4 rounded-xl space-y-3">
+            <div class="flex justify-between items-center">
+              <h4 class="text-xs uppercase font-bold text-slate-400 tracking-wider flex items-center gap-2">
+                <i class="fa-solid fa-utensils text-emerald-400"></i> Nutrition & Food Log
+              </h4>
+              ${day.mealScore ? `<span class="text-xs font-bold bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-2.5 py-1 rounded-lg">Score: ${day.mealScore}/100</span>` : ''}
+            </div>
+
+            <div class="space-y-2.5 text-xs">
+              <div class="p-2.5 bg-slate-800/70 rounded-lg border border-slate-700/50">
+                <span class="text-slate-400 font-bold block mb-0.5">🍳 BREAKFAST</span>
+                <span class="text-slate-200">${day.breakfast}</span>
+              </div>
+              <div class="p-2.5 bg-slate-800/70 rounded-lg border border-slate-700/50">
+                <span class="text-slate-400 font-bold block mb-0.5">🥗 LUNCH</span>
+                <span class="text-slate-200">${day.lunch}</span>
+              </div>
+              <div class="p-2.5 bg-slate-800/70 rounded-lg border border-slate-700/50">
+                <span class="text-slate-400 font-bold block mb-0.5">🍗 DINNER</span>
+                <span class="text-slate-200">${day.dinner}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Initialize on load
+    renderCalendar();
+  </script>
+</body>
+</html>
