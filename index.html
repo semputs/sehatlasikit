@@ -3,9 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fitness & Nutrition Dashboard</title>
+
+  <!-- Primary Meta Tags -->
+  <title>My Fitness & Nutrition Tracker Dashboard</title>
+  <meta name="title" content="My Fitness & Nutrition Tracker Dashboard">
+  <meta name="description" content="2-Week fitness progress tracker: 4-run treadmill split, daily 3-egg nutrition consistency, meal scores, and DOMS recovery updates.">
+
+  <!-- Open Graph / Facebook / WhatsApp / Telegram / LinkedIn -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="My Fitness & Nutrition Progress Dashboard 🏃‍♂️🍳">
+  <meta property="og:description" content="Live tracking my 4-run weekly treadmill split, high-protein nutrition logs, and recovery progress. Check out my latest stats!">
+  <meta property="og:image" content="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=80">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="My Fitness & Nutrition Progress Dashboard 🏃‍♂️🍳">
+  <meta name="twitter:description" content="Live tracking my 4-run weekly treadmill split, high-protein nutrition logs, and recovery progress.">
+  <meta name="twitter:image" content="https://images.unsplash.com/photo-1517838277536-f5f99be501cd?auto=format&fit=crop&w=1200&h=630&q=80">
+
+  <!-- Tailwind CSS & FontAwesome -->
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
     body { font-family: 'Inter', sans-serif; }
@@ -39,7 +58,7 @@
             <i class="fa-solid fa-person-running text-2xl"></i>
           </span>
           <div>
-            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Fitness & Nutrition Tracker AKAKAKKAKAKA</h1>
+            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight">Fitness & Nutrition Tracker</h1>
             <p class="text-slate-400 text-sm mt-0.5">4-Run Weekly Split & Progress Dashboard</p>
           </div>
         </div>
@@ -117,10 +136,10 @@
         </div>
 
         <div class="flex items-center gap-2 bg-slate-900/60 p-1.5 rounded-xl border border-slate-700">
-          <button id="viewWeek1" onclick="switchWeek(1)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md">
+          <button id="viewWeek1" onclick="switchWeek(1)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white">
             Week 1 (Jul 13 - 19)
           </button>
-          <button id="viewWeek2" onclick="switchWeek(2)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all text-slate-400 hover:text-white">
+          <button id="viewWeek2" onclick="switchWeek(2)" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all bg-emerald-500 text-slate-950 shadow-md">
             Week 2 (Jul 20 - 26)
           </button>
         </div>
