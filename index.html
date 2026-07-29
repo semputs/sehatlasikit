@@ -68,17 +68,29 @@
       padding-left: 8px;
     }
 
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
     /* Chart Container */
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 16px;
-      margin-bottom: 20px;
+    }
+    .chart-card h3 {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      text-align: center;
     }
     .chart-wrapper {
       position: relative;
-      height: 220px;
+      height: 200px;
       width: 100%;
     }
 
@@ -131,32 +143,42 @@
     <header>
       <h1>🏃‍♂️ KL Half Marathon 2026 Tracker</h1>
       <p>Target Event: Nov 15, 2026 @ 4:00 AM MYT</p>
-      <div class="last-updated">Last updated: July 26, 2026</div>
+      <div class="last-updated">Last updated: July 29, 2026</div>
     </header>
 
     <div class="stats-grid">
       <div class="stat-card">
         <div class="label">Current Weight</div>
-        <div class="value">84.0 kg</div>
+        <div class="value">83.8 kg</div>
       </div>
       <div class="stat-card">
         <div class="label">Total Loss</div>
-        <div class="value">-2.0 kg</div>
+        <div class="value">-2.2 kg</div>
       </div>
       <div class="stat-card">
         <div class="label">3-Egg Streak</div>
-        <div class="value">14 Days 🔥</div>
+        <div class="value">16 Days 🔥</div>
       </div>
       <div class="stat-card">
-        <div class="label">Longest Distance</div>
-        <div class="value">3.13 km</div>
+        <div class="label">Peak Speed PR</div>
+        <div class="value">7.4 km/h</div>
       </div>
     </div>
 
-    <div class="section-title">Weight Progression (kg)</div>
-    <div class="chart-card">
-      <div class="chart-wrapper">
-        <canvas id="weightChart"></canvas>
+    <div class="section-title">Performance Analytics</div>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3>Weight Trend (kg)</h3>
+        <div class="chart-wrapper">
+          <canvas id="weightChart"></canvas>
+        </div>
+      </div>
+      
+      <div class="chart-card">
+        <h3>Daily Meal Score Trend</h3>
+        <div class="chart-wrapper">
+          <canvas id="mealChart"></canvas>
+        </div>
       </div>
     </div>
 
@@ -317,66 +339,118 @@
             <td>1/4 cup air-fried broccoli w/ 1 tsp mayo + 3 half-boiled eggs <span class="score score-90">98</span></td>
             <td>Active rest day. Locked in a 14-day egg streak! Prepped for Week 3.</td>
           </tr>
+
+          <tr>
+            <td>W3</td>
+            <td>07-27</td>
+            <td>83.8</td>
+            <td>2.74km Speed Intervals (30m total: hit 7.4 km/h PR)</td>
+            <td>3 half-boiled eggs <span class="score score-100">100</span></td>
+            <td>Broccoli w/ mayo + 2 tauhu keras, 2 eggs, processed chicken slices, cheese <span class="score score-80">88</span></td>
+            <td>Broccoli w/ mayo + black pepper chicken breast + 1/3 slice cheesecake <span class="score score-80">88</span></td>
+            <td>Broke 84kg milestone! Hit peak interval speed of 7.4 km/h. Day 15 egg streak.</td>
+          </tr>
+          <tr>
+            <td>W3</td>
+            <td>07-28</td>
+            <td>--</td>
+            <td>FULL REST DAY (Sore throat immune recovery)</td>
+            <td>3 half-boiled eggs, tea <span class="score score-100">100</span></td>
+            <td>1 cup air-fried broccoli w/ mayo + air-fried dory fillet w/ sambal <span class="score score-90">96</span></td>
+            <td>Mixed veggies w/ mayo + black pepper chicken breast + 2 eggs + pc cheesecake <span class="score score-90">90</span></td>
+            <td>Sore throat rest day. Locked in Day 16 egg streak! Tea snack: 2 crackers + 1 banana (80).</td>
+          </tr>
+          <tr>
+            <td>W3</td>
+            <td>07-29</td>
+            <td>--</td>
+            <td>Darebee Strength (3r: 15 Squats, 12 Bridges, 30s Plank)</td>
+            <td>Pending (Aiming for Day 17!)</td>
+            <td>Ayam Penyet set (smashed chicken, tempeh/tofu) WITHOUT rice + Kopi O <span class="score score-90">92</span></td>
+            <td>Pending</td>
+            <td>Completed strength workout. Smashed clean zero-rice Ayam Penyet lunch!</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <footer>
-      Last updated: July 26, 2026 | KL Half Marathon 2026 Prep
+      Last updated: July 29, 2026 | KL Half Marathon 2026 Prep
     </footer>
   </div>
 
   <script>
-    const ctx = document.getElementById('weightChart').getContext('2d');
-    
-    // Gradient fill setup
-    const gradient = ctx.createLinearGradient(0, 0, 0, 200);
-    gradient.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
-    gradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+    // 1. Weight Progression Chart
+    const ctxWeight = document.getElementById('weightChart').getContext('2d');
+    const weightGradient = ctxWeight.createLinearGradient(0, 0, 0, 180);
+    weightGradient.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+    weightGradient.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
 
-    new Chart(ctx, {
+    new Chart(ctxWeight, {
       type: 'line',
       data: {
-        labels: ['07-13 (Baseline)', '07-20 (Week 2)', '07-26 (Current)'],
+        labels: ['07-13', '07-20', '07-26', '07-27'],
         datasets: [{
           label: 'Weight (kg)',
-          data: [86.0, 84.0, 84.0],
+          data: [86.0, 84.0, 84.0, 83.8],
           borderColor: '#38bdf8',
-          backgroundColor: gradient,
+          backgroundColor: weightGradient,
           borderWidth: 3,
           fill: true,
           tension: 0.3,
           pointBackgroundColor: '#22c55e',
           pointBorderColor: '#ffffff',
-          pointRadius: 6,
-          pointHoverRadius: 8
+          pointRadius: 5
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: function(context) { return context.parsed.y + ' kg'; }
-            }
-          }
-        },
+        plugins: { legend: { display: false } },
         scales: {
-          x: {
-            grid: { color: '#334155' },
-            ticks: { color: '#94a3b8' }
-          },
+          x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
           y: {
-            min: 82,
-            max: 88,
+            min: 82, max: 88,
             grid: { color: '#334155' },
-            ticks: {
-              color: '#94a3b8',
-              stepSize: 1,
-              callback: function(val) { return val + ' kg'; }
-            }
+            ticks: { color: '#94a3b8', stepSize: 1, callback: v => v + 'kg' }
+          }
+        }
+      }
+    });
+
+    // 2. Meal Score Progression Chart
+    const ctxMeal = document.getElementById('mealChart').getContext('2d');
+    const mealGradient = ctxMeal.createLinearGradient(0, 0, 0, 180);
+    mealGradient.addColorStop(0, 'rgba(34, 197, 94, 0.4)');
+    mealGradient.addColorStop(1, 'rgba(34, 197, 94, 0.0)');
+
+    new Chart(ctxMeal, {
+      type: 'line',
+      data: {
+        labels: ['07-13', '07-15', '07-17', '07-19', '07-21', '07-23', '07-25', '07-27', '07-28', '07-29'],
+        datasets: [{
+          label: 'Avg Score',
+          data: [95.0, 86.7, 96.7, 95.0, 96.7, 91.0, 80.0, 92.0, 91.5, 92.0],
+          borderColor: '#22c55e',
+          backgroundColor: mealGradient,
+          borderWidth: 3,
+          fill: true,
+          tension: 0.3,
+          pointBackgroundColor: '#38bdf8',
+          pointBorderColor: '#ffffff',
+          pointRadius: 5
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+          y: {
+            min: 60, max: 100,
+            grid: { color: '#334155' },
+            ticks: { color: '#94a3b8', stepSize: 10 }
           }
         }
       }
@@ -384,4 +458,5 @@
   </script>
 
 </body>
-</html>
+            </html>
+            
