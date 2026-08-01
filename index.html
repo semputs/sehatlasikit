@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>KL Half Marathon 2026 - Training & Diet Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -11,6 +12,7 @@
       --accent-blue: #38bdf8;
       --accent-green: #22c55e;
       --accent-yellow: #eab308;
+      --accent-purple: #a855f7;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --border-color: #334155;
@@ -26,16 +28,38 @@
     header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 12px; }
     h1 { margin: 0 0 6px 0; font-size: 1.6rem; color: var(--accent-blue); }
     .subtitle { color: var(--text-muted); font-size: 0.85rem; }
+    
     .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 20px; }
     .stat-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 12px; text-align: center; }
     .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
     .stat-value { font-size: 1.3rem; font-weight: bold; color: var(--text-main); }
     .stat-sub { font-size: 0.75rem; color: var(--accent-green); margin-top: 2px; }
+
+    /* Charts Container */
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .chart-card h2 {
+      font-size: 1rem;
+      margin: 0 0 12px 0;
+      color: var(--accent-blue);
+    }
+
     .tab-buttons { display: flex; gap: 6px; border-bottom: 2px solid var(--border-color); margin-bottom: 12px; }
     .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 0.9rem; font-weight: 600; padding: 8px 14px; cursor: pointer; border-bottom: 3px solid transparent; }
     .tab-btn.active { color: var(--accent-blue); border-bottom-color: var(--accent-blue); }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+    
     .table-container { overflow-x: auto; background-color: var(--card-bg); border-radius: 10px; border: 1px solid var(--border-color); }
     table { width: 100%; border-collapse: collapse; text-align: left; font-size: 0.82rem; }
     th { background-color: #0f172a; color: var(--accent-blue); padding: 10px; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
@@ -43,6 +67,7 @@
     .score-badge { display: inline-block; padding: 2px 5px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; }
     .score-high { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
     .score-mid { background-color: rgba(234, 179, 8, 0.2); color: #fde047; }
+    .score-low { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; }
     .date-cell { white-space: nowrap; font-weight: 600; }
     .comments-cell { color: var(--text-muted); min-width: 180px; }
   </style>
@@ -53,28 +78,41 @@
       <h1>🏃‍♂️ KL Half Marathon 2026</h1>
       <div class="subtitle">Target: Nov 15, 2026 | Goal: 21.1 km</div>
     </header>
+
     <div class="stats-grid">
-      <div class="stat-card"><div class="stat-label">Weight</div><div class="stat-value">82.75 kg</div><div class="stat-sub">▼ 3.25 kg</div></div>
+      <div class="stat-card"><div class="stat-label">Current Weight</div><div class="stat-value">82.75 kg</div><div class="stat-sub">▼ 3.25 kg Total Loss</div></div>
       <div class="stat-card"><div class="stat-label">Egg Streak</div><div class="stat-value">19 Days</div><div class="stat-sub">Continuous</div></div>
       <div class="stat-card"><div class="stat-label">Peak Speed</div><div class="stat-value">7.4 km/h</div><div class="stat-sub">Interval PR</div></div>
-      <div class="stat-card"><div class="stat-label">Peak Run</div><div class="stat-value">3.13 km</div><div class="stat-sub">Continuous</div></div>
+      <div class="stat-card"><div class="stat-label">Peak Long Run</div><div class="stat-value">3.13 km</div><div class="stat-sub">Continuous @ 5.5 km/h</div></div>
     </div>
+
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h2>⚖️ Weight Progression (Weigh-ins Only)</h2>
+        <canvas id="weightChart"></canvas>
+      </div>
+      <div class="chart-card">
+        <h2>🥗 Meal Quality Scores (Week 3)</h2>
+        <canvas id="mealChart"></canvas>
+      </div>
+    </div>
+
     <div class="tabs-container">
       <div class="tab-buttons">
         <button class="tab-btn active" onclick="openTab(event, 'week3')">Week 3</button>
         <button class="tab-btn" onclick="openTab(event, 'week2')">Week 2</button>
         <button class="tab-btn" onclick="openTab(event, 'week1')">Week 1</button>
       </div>
-            <div id="week3" class="tab-content active">
+      <div id="week3" class="tab-content active">
         <div class="table-container">
           <table>
-            <thead><tr><th>Date</th><th>Wt</th><th>Activity</th><th>Breakfast</th><th>B</th><th>Lunch</th><th>L</th><th>Dinner</th><th>D</th><th>Comments</th></tr></thead>
+            <thead><tr><th>Date</th><th>Wt (kg)</th><th>Activity</th><th>Breakfast</th><th>B</th><th>Lunch</th><th>L</th><th>Dinner</th><th>D</th><th>Comments</th></tr></thead>
             <tbody>
               <tr><td class="date-cell">Sat, Aug 01</td><td>82.75</td><td>35m Easy Base Run (Option B)</td><td>Pending</td><td>-</td><td>Pending</td><td>-</td><td>Pending</td><td>-</td><td class="comments-cell">NEW MILESTONE (82.75kg)! Down 1.05kg since Mon. ~5 hrs sleep. Option B selected.</td></tr>
-              <tr><td class="date-cell">Fri, Jul 31</td><td>83.8</td><td>3.0km Tempo Progression Run</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Broccoli w/ mayo + 2 tauhu keras, 2 eggs, gochujang chicken</td><td><span class="score-badge score-high">92</span></td><td>4 prawns + 1 fried egg + sambal bilis/kacang + cucumber</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Pushed through mental wall at min 10 to hit min 27! Total 3.0km. Day 19 egg streak! Late: 2 eggs.</td></tr>
-              <tr><td class="date-cell">Thu, Jul 30</td><td>83.8</td><td>FULL REST DAY (Kid sick)</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Maggi Kari + 2 eggs + 1 pc cheesecake</td><td><span class="score-badge score-mid">65</span></td><td>Skipped (Fries, crackers, biscuit, ice cream @ teatime)</td><td><span class="score-badge score-mid">50</span></td><td class="comments-cell">2.5 hrs sleep. Ghrelin surge managed. Rested legs. Day 18 egg streak!</td></tr>
-              <tr><td class="date-cell">Wed, Jul 29</td><td>83.8</td><td>Darebee Strength (3 rounds)</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Ayam Penyet set (no rice) + Kopi O</td><td><span class="score-badge score-high">92</span></td><td>Mixed veg + 1 banana + skinless chicken leg</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Core & posterior chain strength. Day 17 egg streak!</td></tr>
-              <tr><td class="date-cell">Tue, Jul 28</td><td>83.8</td><td>FULL REST DAY (Sore throat)</td><td>3 half-boiled eggs, tea</td><td><span class="score-badge score-high">100</span></td><td>Broccoli + air-fried dory w/ sambal</td><td><span class="score-badge score-high">96</span></td><td>Mixed veg + black pepper chicken + 2 eggs + cheesecake</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Rest day for sore throat. Tea: 2 crackers + 1 banana. Day 16 egg streak!</td></tr>
+              <tr><td class="date-cell">Fri, Jul 31</td><td>--</td><td>3.0km Tempo Progression Run</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Broccoli w/ mayo + 2 tauhu keras, 2 eggs, Gochujang chicken</td><td><span class="score-badge score-high">92</span></td><td>4 prawns + 1 fried egg + sambal bilis/kacang + cucumber</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Pushed through mental wall at min 10 to hit min 27! Total 3.0km. Day 19 egg streak! Late: 2 eggs.</td></tr>
+              <tr><td class="date-cell">Thu, Jul 30</td><td>--</td><td>FULL REST DAY (Kid sick)</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Maggi Kari + 2 eggs + 1 pc cheesecake</td><td><span class="score-badge score-mid">65</span></td><td>Skipped (Fries, crackers, biscuit, ice cream @ teatime)</td><td><span class="score-badge score-mid">50</span></td><td class="comments-cell">2.5 hrs sleep. Ghrelin surge managed. Rested legs. Day 18 egg streak!</td></tr>
+              <tr><td class="date-cell">Wed, Jul 29</td><td>--</td><td>Darebee Strength (3 rounds)</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Ayam Penyet set (no rice) + Kopi O</td><td><span class="score-badge score-high">92</span></td><td>Mixed veg + 1 banana + skinless chicken leg</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Core & posterior chain strength. Day 17 egg streak!</td></tr>
+              <tr><td class="date-cell">Tue, Jul 28</td><td>--</td><td>FULL REST DAY (Sore throat)</td><td>3 half-boiled eggs, tea</td><td><span class="score-badge score-high">100</span></td><td>Broccoli + air-fried dory w/ sambal</td><td><span class="score-badge score-high">96</span></td><td>Mixed veg + black pepper chicken + 2 eggs + cheesecake</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Rest day for sore throat. Tea: 2 crackers + 1 banana. Day 16 egg streak!</td></tr>
               <tr><td class="date-cell">Mon, Jul 27</td><td>83.8</td><td>2.74km Speed Intervals (7.4 PR)</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Broccoli + 2 tauhu keras, 2 eggs, chicken, cheese</td><td><span class="score-badge score-high">88</span></td><td>Broccoli + black pepper chicken breast + cheesecake</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Broke 84kg milestone to 83.8kg! Intercostal pop at 7.4 speed. Day 15 egg streak!</td></tr>
             </tbody>
           </table>
@@ -84,15 +122,15 @@
       <div id="week2" class="tab-content">
         <div class="table-container">
           <table>
-            <thead><tr><th>Date</th><th>Wt</th><th>Activity</th><th>Breakfast</th><th>B</th><th>Lunch</th><th>L</th><th>Dinner</th><th>D</th><th>Comments</th></tr></thead>
+            <thead><tr><th>Date</th><th>Wt (kg)</th><th>Activity</th><th>Breakfast</th><th>B</th><th>Lunch</th><th>L</th><th>Dinner</th><th>D</th><th>Comments</th></tr></thead>
             <tbody>
-              <tr><td class="date-cell">Sun, Jul 26</td><td>84.2</td><td>Active Recovery Walk</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Mixed Veg + Grilled Chicken</td><td><span class="score-badge score-high">95</span></td><td>Steam Fish + Broccoli</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Recovery day after long run PR. Day 14 egg streak.</td></tr>
-              <tr><td class="date-cell">Sat, Jul 25</td><td>84.3</td><td>3.13km Long Run PR</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Keto Chicken Salad</td><td><span class="score-badge score-high">92</span></td><td>Air-fried Dory + Stir-fry Veggies</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">New Long Run Distance PR! Day 13 egg streak.</td></tr>
-              <tr><td class="date-cell">Fri, Jul 24</td><td>84.5</td><td>Tempo Run 2.8km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Tauhu Keras + 2 Eggs + Veggies</td><td><span class="score-badge score-high">88</span></td><td>Ayam Penyet (no rice)</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Consistent pace. Day 12 egg streak.</td></tr>
-              <tr><td class="date-cell">Thu, Jul 23</td><td>84.6</td><td>Darebee Strength Routine</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Air-fried Chicken Breast + Salad</td><td><span class="score-badge score-high">95</span></td><td>Egg Soup + Steamed Tofu</td><td><span class="score-badge score-high">92</span></td><td class="comments-cell">Posterior chain focused. Day 11 egg streak.</td></tr>
-              <tr><td class="date-cell">Wed, Jul 22</td><td>84.8</td><td>Interval Run 2.6km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Fish Fillet + Veggies</td><td><span class="score-badge score-high">90</span></td><td>Chicken Stir-fry (no rice)</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Interval effort. Day 10 egg streak.</td></tr>
-              <tr><td class="date-cell">Tue, Jul 21</td><td>85.0</td><td>Full Rest Day</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Beef Soup (no noodles) + Greens</td><td><span class="score-badge score-high">92</span></td><td>Grilled Salmon + Asparagus</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Rest day. Day 9 egg streak.</td></tr>
-              <tr><td class="date-cell">Mon, Jul 20</td><td>85.2</td><td>Base Cruise 2.5km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Chicken Breasts + Broccoli</td><td><span class="score-badge score-high">90</span></td><td>Omelette w/ Spinach & Cheese</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Week 2 kickoff. Day 8 egg streak.</td></tr>
+              <tr><td class="date-cell">Sun, Jul 26</td><td>--</td><td>Active Recovery Walk</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Mixed Veg + Grilled Chicken</td><td><span class="score-badge score-high">95</span></td><td>Steam Fish + Broccoli</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Recovery day after long run PR. Day 14 egg streak.</td></tr>
+              <tr><td class="date-cell">Sat, Jul 25</td><td>--</td><td>3.13km Long Run PR</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Keto Chicken Salad</td><td><span class="score-badge score-high">92</span></td><td>Air-fried Dory + Stir-fry Veggies</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">New Long Run Distance PR! Day 13 egg streak.</td></tr>
+              <tr><td class="date-cell">Fri, Jul 24</td><td>--</td><td>Tempo Run 2.8km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Tauhu Keras + 2 Eggs + Veggies</td><td><span class="score-badge score-high">88</span></td><td>Ayam Penyet (no rice)</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Consistent pace. Day 12 egg streak.</td></tr>
+              <tr><td class="date-cell">Thu, Jul 23</td><td>--</td><td>Darebee Strength Routine</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Air-fried Chicken Breast + Salad</td><td><span class="score-badge score-high">95</span></td><td>Egg Soup + Steamed Tofu</td><td><span class="score-badge score-high">92</span></td><td class="comments-cell">Posterior chain focused. Day 11 egg streak.</td></tr>
+              <tr><td class="date-cell">Wed, Jul 22</td><td>--</td><td>Interval Run 2.6km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Fish Fillet + Veggies</td><td><span class="score-badge score-high">90</span></td><td>Chicken Stir-fry (no rice)</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Interval effort. Day 10 egg streak.</td></tr>
+              <tr><td class="date-cell">Tue, Jul 21</td><td>--</td><td>Full Rest Day</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Beef Soup (no noodles) + Greens</td><td><span class="score-badge score-high">92</span></td><td>Grilled Salmon + Asparagus</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Rest day. Day 9 egg streak.</td></tr>
+              <tr><td class="date-cell">Mon, Jul 20</td><td>84.0</td><td>Base Cruise 2.5km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Chicken Breasts + Broccoli</td><td><span class="score-badge score-high">95</span></td><td>Omelette w/ Spinach & Cheese</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Week 2 kickoff. Day 8 egg streak. Baseline 84.0kg.</td></tr>
             </tbody>
           </table>
         </div>
@@ -101,15 +139,15 @@
       <div id="week1" class="tab-content">
         <div class="table-container">
           <table>
-            <thead><tr><th>Date</th><th>Wt</th><th>Activity</th><th>Breakfast</th><th>B</th><th>Lunch</th><th>L</th><th>Dinner</th><th>D</th><th>Comments</th></tr></thead>
+            <thead><tr><th>Date</th><th>Wt (kg)</th><th>Activity</th><th>Breakfast</th><th>B</th><th>Lunch</th><th>L</th><th>Dinner</th><th>D</th><th>Comments</th></tr></thead>
             <tbody>
-              <tr><td class="date-cell">Sun, Jul 19</td><td>85.5</td><td>Active Walk</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Grilled Chicken Salad</td><td><span class="score-badge score-high">90</span></td><td>Steam Fish + Cauliflower</td><td><span class="score-badge score-high">92</span></td><td class="comments-cell">Week 1 closeout. Day 7 egg streak.</td></tr>
-              <tr><td class="date-cell">Sat, Jul 18</td><td>85.6</td><td>First Long Base Run 2.5km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Air-fried Dory + Broccoli</td><td><span class="score-badge score-high">92</span></td><td>Chicken Soup + Tofu</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Building base. Day 6 egg streak.</td></tr>
-              <tr><td class="date-cell">Fri, Jul 17</td><td>85.8</td><td>Tempo Jog 2.2km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Tauhu Keras + Fried Eggs</td><td><span class="score-badge score-high">85</span></td><td>Steamed Chicken + Veggies</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Steady effort. Day 5 egg streak.</td></tr>
-              <tr><td class="date-cell">Thu, Jul 16</td><td>85.9</td><td>Darebee Strength</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Keto Tuna Salad</td><td><span class="score-badge score-high">90</span></td><td>Stir-fry Beef + Cabbage</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Core focus. Day 4 egg streak.</td></tr>
-              <tr><td class="date-cell">Wed, Jul 15</td><td>86.0</td><td>Intro Interval 2.0km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Chicken Breasts + Greens</td><td><span class="score-badge score-high">88</span></td><td>Egg Drop Soup + Fish</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Baseline calibration. Day 3 egg streak.</td></tr>
-              <tr><td class="date-cell">Tue, Jul 14</td><td>86.0</td><td>Rest Day</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Salmon + Broccoli</td><td><span class="score-badge score-high">95</span></td><td>Omelette + Mushroom</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Adaptation rest day. Day 2 egg streak.</td></tr>
-              <tr><td class="date-cell">Mon, Jul 13</td><td>86.0</td><td>Baseline Run 2.0km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Chicken Salad</td><td><span class="score-badge score-high">90</span></td><td>Mixed Veg + Eggs</td><td><span class="score-badge score-high">88</span></td><td class="comments-cell">Kickoff! 86.0kg start. Day 1 egg streak.</td></tr>
+              <tr><td class="date-cell">Sun, Jul 19</td><td>--</td><td>Active Walk</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Grilled Chicken Salad</td><td><span class="score-badge score-high">85</span></td><td>Steam Fish + Cauliflower</td><td><span class="score-badge score-high">100</span></td><td class="comments-cell">Week 1 closeout. Day 7 egg streak.</td></tr>
+              <tr><td class="date-cell">Sat, Jul 18</td><td>--</td><td>First Long Base Run 2.5km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Domino's Pizza, kuih ketayap</td><td><span class="score-badge score-low">25</span></td><td>Air-fried Dory + Broccoli</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Pizza treat day. Stomach ache noted. Day 6 egg streak.</td></tr>
+              <tr><td class="date-cell">Fri, Jul 17</td><td>--</td><td>Tempo Jog 2.2km</td><td>3 half-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>Tandoori breast, 2 eggs, Gochujang</td><td><span class="score-badge score-high">95</span></td><td>2 air-fried dory fillets, sambal</td><td><span class="score-badge score-high">95</span></td><td class="comments-cell">Steady effort. Day 5 egg streak.</td></tr>
+              <tr><td class="date-cell">Thu, Jul 16</td><td>--</td><td>Darebee Strength</td><td>Nasi Lemak Hack (no rice)</td><td><span class="score-badge score-mid">75</span></td><td>2 deep-fried breasts (stripped)</td><td><span class="score-badge score-high">80</span></td><td>Air-fried tandoori breast, 2 sp pasta</td><td><span class="score-badge score-high">85</span></td><td class="comments-cell">Core focus. Sleep deprived. Day 4 egg streak.</td></tr>
+              <tr><td class="date-cell">Wed, Jul 15</td><td>--</td><td>Intro Interval 2.0km</td><td>2 soft-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>2 tauhu keras, 2 eggs, Gochujang</td><td><span class="score-badge score-high">90</span></td><td>Texas Chicken breast (no skin)</td><td><span class="score-badge score-mid">70</span></td><td class="comments-cell">Baseline calibration. Day 3 egg streak.</td></tr>
+              <tr><td class="date-cell">Tue, Jul 14</td><td>--</td><td>Rest Day</td><td>2 soft-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>High-protein recovery</td><td><span class="score-badge score-high">90</span></td><td>High-protein recovery</td><td><span class="score-badge score-high">90</span></td><td class="comments-cell">Adaptation rest day. Day 2 egg streak.</td></tr>
+              <tr><td class="date-cell">Mon, Jul 13</td><td>86.0</td><td>Baseline Run 2.0km</td><td>2 soft-boiled eggs</td><td><span class="score-badge score-high">100</span></td><td>2 tauhu keras, 2 eggs, Gochujang</td><td><span class="score-badge score-high">90</span></td><td>Not recorded</td><td>-</td><td class="comments-cell">Kickoff! Starting weight 86.0kg. Day 1 egg streak.</td></tr>
             </tbody>
           </table>
         </div>
@@ -117,6 +155,7 @@
 
     </div>
   </div>
+
   <script>
     function openTab(evt, tabName) {
       var i, tabcontent, tablinks;
@@ -127,6 +166,57 @@
       document.getElementById(tabName).classList.add("active");
       evt.currentTarget.classList.add("active");
     }
+
+    // Chart 1: Weight Loss Trend (Only weigh-in dates)
+    const ctxWeight = document.getElementById('weightChart').getContext('2d');
+    new Chart(ctxWeight, {
+      type: 'line',
+      data: {
+        labels: ['Jul 13 (Mon)', 'Jul 20 (Mon)', 'Jul 27 (Mon)', 'Aug 01 (Sat)'],
+        datasets: [{
+          label: 'Weight (kg)',
+          data: [86.0, 84.0, 83.8, 82.75],
+          borderColor: '#38bdf8',
+          backgroundColor: 'rgba(56, 189, 248, 0.1)',
+          borderWidth: 3,
+          pointBackgroundColor: '#38bdf8',
+          pointRadius: 5,
+          tension: 0.2,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { min: 81, max: 87, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+          x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+        }
+      }
+    });
+
+    // Chart 2: Week 3 Meal Quality Scores
+    const ctxMeal = document.getElementById('mealChart').getContext('2d');
+    new Chart(ctxMeal, {
+      type: 'bar',
+      data: {
+        labels: ['Mon Jul 27', 'Tue Jul 28', 'Wed Jul 29', 'Thu Jul 30', 'Fri Jul 31'],
+        datasets: [
+          { label: 'Breakfast', data: [100, 100, 100, 100, 100], backgroundColor: '#4ade80' },
+          { label: 'Lunch', data: [88, 96, 92, 65, 92], backgroundColor: '#38bdf8' },
+          { label: 'Dinner', data: [88, 90, 95, 50, 88], backgroundColor: '#a855f7' }
+        ]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: { min: 0, max: 100, grid: { color: '#334155' }, ticks: { color: '#94a3b8' } },
+          x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8' } }
+        },
+        plugins: { legend: { labels: { color: '#f8fafc' } } }
+      }
+    });
   </script>
 </body>
-</html>
+  </html>
+  
