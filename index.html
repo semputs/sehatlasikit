@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SemputLari — Race Command Center</title>
+  <title>SemputLari KLHalf 2026 Prep program</title>
   <!-- Social Media & Open Graph Meta Tags -->
   <meta property="og:title" content="SemputLari — Race Command Center">
   <meta property="og:description" content="KL Half Marathon 2026 Prep | Live Weight, Pace & Diet Logs">
@@ -49,8 +49,8 @@
     <!-- Header Text & Badge Content -->
     <div class="relative z-10 flex justify-between items-end">
       <div>
-        <h1 class="text-xl font-bold tracking-tight text-white">SemputLari HQ</h1>
-        <p class="text-xs text-gray-300">KL Half Marathon 2026 Prep</p>
+        <h1 class="text-xl font-bold tracking-tight text-white"></h1>
+        <p class="text-xs text-gray-300"></p>
       </div>
       <span class="text-[10px] px-2.5 py-1 rounded-full bg-lime-400/20 lime-text border border-lime-400/30 font-mono backdrop-blur-md">がんばるんば</span>
     </div>
@@ -127,8 +127,16 @@
       <canvas id="foodScoreChart"></canvas>
     </div>
   </section>
+
+  <!-- 5. Base Pace Progression Chart -->
+  <section class="card p-4 mb-4">
+    <h2 class="text-xs font-semibold text-gray-300 mb-3">⚡ Base Pace Progression (/km)</h2>
+    <div class="h-40 w-full">
+      <canvas id="paceChart"></canvas>
+    </div>
+  </section>
   
-  <!-- 5. Pace & Half Marathon Projection Section -->
+  <!-- 6. Pace & Half Marathon Projection Section -->
   <section class="grid grid-cols-2 gap-2 mb-4">
     <!-- Pace Card -->
     <div class="card p-3 flex flex-col justify-between">
@@ -149,7 +157,7 @@
     </div>
   </section>
 
-  <!-- 6. Paginated Weekly Logs Table (With Food Details) -->
+  <!-- 7. Paginated Weekly Logs Table (With Food Details) -->
   <section class="card p-4 mb-4">
     <div class="flex justify-between items-center mb-3">
       <h2 class="text-xs font-semibold text-gray-300">📋 Spreadsheet History</h2>
@@ -578,6 +586,7 @@
 
       renderWeightChart(data);
       renderFoodScoreChart(data);
+      renderPaceChart(data);
       calculatePaceAndHM(data);
 
       const weekMap = {};
@@ -615,7 +624,7 @@
 
       if (runEntries.length === 0) return;
 
-      // Since data is chronological, the latest run is the last entry in the array
+      // Latest run is the last entry in the chronological array
       const latestRun = runEntries[runEntries.length - 1]; 
       const speed = latestRun.speed;
       const dist = latestRun.dist;
@@ -706,7 +715,78 @@
       });
     }
 
-    // 3. Render Paginated Table with Meal Log Details
+    // 3. Render Base Pace Progression Chart (Chronological left-to-right)
+    function renderPaceChart(data) {
+      const paceEntries = [];
+      data.forEach(d => {
+        if (!d.activity || d.activity === '--') return;
+        const match = d.activity.match(/(\d+(?:\.\d+)?)\s*km\/h/i);
+        if (match) {
+          const speed = parseFloat(match[1]);
+          const paceMins = 60 / speed; // e.g. 60 / 6.6 = 9.09 mins
+          paceEntries.push({
+            date: d.date.slice(5),
+            pace: paceMins,
+            speed: speed
+          });
+        }
+      });
+
+      if (paceEntries.length === 0) return;
+
+      const ctx = document.getElementById('paceChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: paceEntries.map(e => e.date),
+          datasets: [{
+            data: paceEntries.map(e => e.pace.toFixed(2)),
+            borderColor: '#34d399',
+            backgroundColor: 'rgba(52, 211, 153, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#34d399'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const totalSecs = Math.round(context.raw * 60);
+                  const m = Math.floor(totalSecs / 60);
+                  const s = String(totalSecs % 60).padStart(2, '0');
+                  return ` Pace: ${m}:${s} /km`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+            y: {
+              reverse: true, // Reversing Y-axis so faster pace trends UPWARDS
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: {
+                color: '#9ca3af',
+                font: { size: 9 },
+                callback: function(value) {
+                  const totalSecs = Math.round(value * 60);
+                  const m = Math.floor(totalSecs / 60);
+                  const s = String(totalSecs % 60).padStart(2, '0');
+                  return `${m}:${s}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 4. Render Paginated Table with Meal Log Details
     function renderTable() {
       if (sortedWeeks.length === 0) return;
 
