@@ -2,8 +2,11 @@ name: Auto-Sync Dashboard
 
 on:
   schedule:
-    - cron: '0 13 * * *' # Runs daily at 9:00 PM MYT (13:00 UTC)
-  workflow_dispatch: # Allows manual trigger button in GitHub UI
+    - cron: '0 13 * * *' # Daily at 9:00 PM MYT (13:00 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write # Grants commit & push access
 
 jobs:
   sync-and-deploy:
@@ -11,10 +14,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.x'
 
@@ -33,3 +36,4 @@ jobs:
           git add index.html
           git diff --quiet || git commit -m "Auto-sync spreadsheet logs to dashboard"
           git push
+          
