@@ -105,7 +105,27 @@
       <canvas id="foodScoreChart"></canvas>
     </div>
   </section>
+  
+<!-- Pace & Half Marathon Projection Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-6">
+  <!-- Pace Card -->
+  <div class="bg-card p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
+    <div>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Current Base Pace</div>
+      <div id="current-pace-val" class="text-3xl font-bold text-emerald-400 mt-2">--:-- /km</div>
+    </div>
+    <div id="pace-subtext" class="text-xs text-gray-500 mt-3">Calculated from recent treadmill runs</div>
+  </div>
 
+  <!-- HM Estimate Card -->
+  <div class="bg-card p-5 rounded-xl border border-gray-800 flex flex-col justify-between">
+    <div>
+      <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Est. Half Marathon Time (21.1km)</div>
+      <div id="est-hm-val" class="text-3xl font-bold text-amber-400 mt-2">--h --m</div>
+    </div>
+    <div id="hm-subtext" class="text-xs text-gray-500 mt-3">Riegel's endurance projection formula</div>
+  </div>
+</div>
   <!-- 5. Paginated Weekly Logs Table (With Food Details) -->
   <section class="card p-4 mb-4">
     <div class="flex justify-between items-center mb-3">
@@ -535,6 +555,7 @@
 
       renderWeightChart(data);
       renderFoodScoreChart(data);
+      calculatePaceAndHM(data);
 
       const weekMap = {};
       data.forEach(item => {
@@ -550,7 +571,53 @@
 
       renderTable();
     }
+function calculatePaceAndHM(data) {
+  const runEntries = [];
+  
+  data.forEach(item => {
+    if (!item.activity || item.activity === '--') return;
+    
+    // Extract speed (km/h) and distance (km)
+    const speedMatch = item.activity.match(/(\d+(?:\.\d+)?)\s*km\/h/i);
+    const distMatch = item.activity.match(/(\d+(?:\.\d+)?)\s*km/i);
+    
+    if (speedMatch) {
+      const speed = parseFloat(speedMatch[1]);
+      const dist = distMatch ? parseFloat(distMatch[1]) : 3.0;
+      runEntries.push({ date: item.date, speed, dist });
+    }
+  });
 
+  if (runEntries.length === 0) return;
+
+  const latestRun = runEntries[0]; // Latest entry with speed recorded
+  const speed = latestRun.speed;
+  const dist = latestRun.dist;
+
+  // Calculate Pace (min:sec per km)
+  const paceSecTotal = 3600 / speed;
+  const paceMin = Math.floor(paceSecTotal / 60);
+  const paceSec = Math.round(paceSecTotal % 60);
+  const paceFormatted = `${paceMin}:${paceSec.toString().padStart(2, '0')} /km`;
+
+  // Calculate Half Marathon Projection (Riegel Formula)
+  const t1_mins = (dist / speed) * 60;
+  const estHmMins = t1_mins * Math.pow(21.0975 / dist, 1.06);
+  const hmHours = Math.floor(estHmMins / 60);
+  const hmMinsRemaining = Math.round(estHmMins % 60);
+  const hmFormatted = `${hmHours}h ${hmMinsRemaining}m`;
+
+  // Update HTML Cards
+  const paceEl = document.getElementById('current-pace-val');
+  const paceSubEl = document.getElementById('pace-subtext');
+  const hmEl = document.getElementById('est-hm-val');
+  const hmSubEl = document.getElementById('hm-subtext');
+
+  if (paceEl) paceEl.innerText = paceFormatted;
+  if (paceSubEl) paceSubEl.innerText = `Base speed: ${speed} km/h (${latestRun.date.slice(5)})`;
+  if (hmEl) hmEl.innerText = hmFormatted;
+  if (hmSubEl) hmSubEl.innerText = `Projected from ${dist}km run @ ${speed} km/h (Riegel Formula)`;
+}
     // 1. Render Weight Progression Chart
     function renderWeightChart(data) {
       const weightEntries = data.filter(d => d.weight && d.weight !== '--').reverse();
