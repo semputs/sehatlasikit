@@ -2,8 +2,10 @@ name: Auto-Sync Dashboard
 
 on:
   schedule:
-    - cron: '0 13 * * *' # Daily at 9:00 PM MYT (13:00 UTC)
-  workflow_dispatch:
+    # Runs at 01:00, 04:00, 07:00, 10:00, 13:00, 16:00 UTC
+    # (Equivalent to 9 AM, 12 PM, 3 PM, 6 PM, 9 PM, 12 AM MYT)
+    - cron: '0 1,4,7,10,13,16 * * *'
+  workflow_dispatch: # Allows manual run button in GitHub Actions tab
 
 permissions:
   contents: write
