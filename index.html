@@ -77,6 +77,8 @@
         <span class="text-[9px] text-gray-400 uppercase">Secs</span>
       </div>
     </div>
+    <!-- Weeks Left Banner -->
+    <p id="cd-weeks-text" class="text-2xl font-black gold-text mt-3 tracking-tight">-- weeks to go!</p>
   </section>
 
   <!-- 2. Priority Metrics Grid -->
@@ -164,7 +166,7 @@
       <!-- Week Navigation Controls -->
       <div class="flex items-center space-x-2">
         <button id="btn-prev-week" onclick="changeWeek(1)" class="px-2 py-1 bg-black/40 border border-white/10 rounded text-[10px] text-gray-300 hover:lime-text">&larr; Older</button>
-        <span id="current-week-label" class="text-xs font-bold lime-text">Week 4</span>
+        <span id="current-week-label" class="text-xs font-bold lime-text">Week 1</span>
         <button id="btn-next-week" onclick="changeWeek(-1)" class="px-2 py-1 bg-black/40 border border-white/10 rounded text-[10px] text-gray-300 hover:lime-text">Newer &rarr;</button>
       </div>
     </div>
@@ -200,10 +202,18 @@
       const now = new Date().getTime();
       const diff = raceDate - now;
       if (diff > 0) {
-        document.getElementById("cd-days").innerText = String(Math.floor(diff / (1000 * 60 * 60 * 24))).padStart(2, '0');
+        const daysLeft = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const weeksLeft = Math.ceil(daysLeft / 7);
+
+        document.getElementById("cd-days").innerText = String(daysLeft).padStart(2, '0');
         document.getElementById("cd-hours").innerText = String(Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
         document.getElementById("cd-mins").innerText = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
         document.getElementById("cd-secs").innerText = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+        
+        const weeksEl = document.getElementById("cd-weeks-text");
+        if (weeksEl) {
+          weeksEl.innerText = `🔥 ${weeksLeft} weeks to go!`;
+        }
       }
     }
     setInterval(updateCountdown, 1000);
@@ -626,6 +636,20 @@
       const data = window.dashboardData;
       if (!data || data.length === 0) return;
 
+      // Dynamically calculate Week numbers based on start date (July 13, 2026 = Week 1)
+      const programStartDate = new Date("2026-07-13T00:00:00+08:00");
+      data.forEach(item => {
+        if (item.date) {
+          const itemDate = new Date(item.date + "T00:00:00+08:00");
+          const diffTime = itemDate.getTime() - programStartDate.getTime();
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          if (!isNaN(diffDays) && diffDays >= 0) {
+            const calculatedWeek = Math.floor(diffDays / 7) + 1;
+            item.week = "Week " + calculatedWeek;
+          }
+        }
+      });
+
       renderWeightChart(data);
       renderFoodScoreChart(data);
       renderPaceChart(data);
@@ -726,7 +750,7 @@
       });
     }
 
-    // 2. Render Daily Average Food Score Chart (Chronological left-to-right)
+    // 2. Render Daily Average Food Score Chart (Start from 50)
     function renderFoodScoreChart(data) {
       const foodEntries = data.map(d => {
         const scores = [parseFloat(d.b_score), parseFloat(d.l_score), parseFloat(d.d_score)].filter(s => !isNaN(s));
@@ -751,7 +775,7 @@
           plugins: { legend: { display: false } },
           scales: {
             x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
-            y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 9 } } }
+            y: { min: 50, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 9 } } }
           }
         }
       });
@@ -765,7 +789,7 @@
         const match = d.activity.match(/(\d+(?:\.\d+)?)\s*km\/h/i);
         if (match) {
           const speed = parseFloat(match[1]);
-          const paceMins = 60 / speed; // e.g. 60 / 6.6 = 9.09 mins
+          const paceMins = 60 / speed;
           paceEntries.push({
             date: d.date.slice(5),
             pace: paceMins,
