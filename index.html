@@ -130,6 +130,14 @@
     </div>
   </section>
 
+  <!-- 4.5 Sleep Duration Chart -->
+  <section class="card p-4 mb-4">
+    <h2 class="text-xs font-semibold text-gray-300 mb-3">😴 Daily Sleep Duration (Hours)</h2>
+    <div class="h-40 w-full">
+      <canvas id="sleepChart"></canvas>
+    </div>
+  </section>
+
   <!-- 5. Base Pace Progression Chart -->
   <section class="card p-4 mb-4">
     <h2 class="text-xs font-semibold text-gray-300 mb-3">⚡ Base Pace Progression (/km)</h2>
@@ -722,6 +730,7 @@
 
       renderWeightChart(data);
       renderFoodScoreChart(data);
+      renderSleepChart(data);
       renderPaceChart(data);
       calculatePaceAndHM(data);
 
@@ -974,6 +983,66 @@
       }
     }
 
+    // Render Sleep Duration Chart (Chronological left-to-right)
+    function renderSleepChart(data) {
+      const sleepEntries = data.map(d => {
+        let hours = null;
+        if (d.sleep && d.sleep !== '--') {
+          hours = parseFloat(d.sleep);
+        } else if (d.comments) {
+          const match = d.comments.match(/(?:slept|sleep)\D*?(\d+(?:\.\d+)?)\s*(?:h|hrs|hours)\b/i);
+          if (match) hours = parseFloat(match[1]);
+        }
+        return { date: d.date.slice(5), hours: hours };
+      }).filter(d => d.hours !== null && !isNaN(d.hours));
+
+      if (sleepEntries.length === 0) return;
+
+      const ctx = document.getElementById('sleepChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: sleepEntries.map(d => d.date),
+          datasets: [{
+            data: sleepEntries.map(d => d.hours),
+            borderColor: '#818cf8',
+            backgroundColor: 'rgba(129, 140, 248, 0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 4,
+            pointBackgroundColor: '#818cf8'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  return ` Sleep: ${context.raw} hrs`;
+                }
+              }
+            }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+            y: {
+              min: 0,
+              max: 10,
+              grid: { color: 'rgba(255,255,255,0.05)' },
+              ticks: {
+                color: '#9ca3af',
+                font: { size: 9 },
+                callback: function(value) { return value + 'h'; }
+              }
+            }
+          }
+        }
+      });
+    }
+    
     document.addEventListener('DOMContentLoaded', initDashboard);
   </script>
 </body>
