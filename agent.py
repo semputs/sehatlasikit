@@ -1,6 +1,7 @@
 import os
 import csv
 import json
+import re
 import requests
 from datetime import datetime
 
@@ -27,6 +28,14 @@ for row in reader:
     
     date_val = r.get('date', '')
     if date_val and date_val.lower() != 'date':
+        comments_val = r.get('comments', '')
+        
+        # Check for direct 'sleep' column first, fallback to regex extraction from comments
+        sleep_val = r.get('sleep', '')
+        if not sleep_val or sleep_val == '--':
+            match = re.search(r'(?:slept|sleep)\D*?(\d+(?:\.\d+)?)\s*(?:h|hrs|hours)\b', comments_val, re.IGNORECASE)
+            sleep_val = match.group(1) if match else '--'
+
         dashboard_data.append({
             "week": r.get('week', ''),
             "date": date_val,
@@ -39,7 +48,8 @@ for row in reader:
             "l_score": r.get('l_score', '--'),
             "dinner": r.get('dinner', '--'),
             "d_score": r.get('d_score', '--'),
-            "comments": r.get('comments', '')
+            "sleep": sleep_val,
+            "comments": comments_val
         })
 
 print(f"Parsed {len(dashboard_data)} records from spreadsheet.")
