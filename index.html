@@ -935,6 +935,14 @@
       if (hmSubEl) hmSubEl.innerText = `Projected from ${dist}km run @ ${speed} km/h (Riegel Formula)`;
     }
 
+    // Helper to calculate the exact mean of valid numbers from window.dashboardData
+    function calculateAverage(arr) {
+      const validValues = arr.filter(v => v !== null && v !== undefined && !isNaN(v) && v > 0);
+      if (validValues.length === 0) return 0;
+      const sum = validValues.reduce((a, b) => a + b, 0);
+      return (sum / validValues.length).toFixed(1);
+    }
+    
     // 1. Render Weight Progression Chart (Chronological left-to-right)
     function renderWeightChart(data) {
       const weightEntries = data.filter(d => d.weight && d.weight !== '--');
@@ -966,36 +974,54 @@
     }
 
     
-    // 2. Render Daily Average Food Score Chart (Start from 50)
-    function renderFoodScoreChart(data) {
-      const foodEntries = data.map(d => {
-        const scores = [parseFloat(d.b_score), parseFloat(d.l_score), parseFloat(d.d_score)].filter(s => !isNaN(s));
-        const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-        return { date: d.date.slice(5), avgScore: avg };
-      }).filter(d => d.avgScore !== null);
+// 2. Render Daily Average Food Score Chart (Start from 50)
+function renderFoodScoreChart(data) {
+  const foodEntries = data.map(d => {
+    const scores = [parseFloat(d.b_score), parseFloat(d.l_score), parseFloat(d.d_score)].filter(s => !isNaN(s));
+    const avg = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
+    return { date: d.date.slice(5), avgScore: avg };
+  }).filter(d => d.avgScore !== null);
 
-      const ctx = document.getElementById('foodScoreChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: foodEntries.map(d => d.date),
-          datasets: [{
-            data: foodEntries.map(d => d.avgScore),
-            backgroundColor: '#fbbf24',
-            borderRadius: 6
-          }]
+  // Dynamically calculate overall average score
+  const totalAvg = foodEntries.length > 0 
+    ? Math.round(foodEntries.reduce((sum, item) => sum + item.avgScore, 0) / foodEntries.length)
+    : 0;
+
+  const ctx = document.getElementById('foodScoreChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: foodEntries.map(d => d.date),
+      datasets: [
+        {
+          label: 'Daily Avg Score',
+          data: foodEntries.map(d => d.avgScore),
+          backgroundColor: '#fbbf24',
+          borderRadius: 6
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
-            y: { min: 50, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 9 } } }
-          }
+        {
+          type: 'line',
+          label: `Overall Avg (${totalAvg})`,
+          data: new Array(foodEntries.length).fill(totalAvg),
+          borderColor: '#ef4444', // Red dashed average line
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false
         }
-      });
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+        y: { min: 50, max: 100, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#9ca3af', font: { size: 9 } } }
+      }
     }
+  });
+}
 
     // 3. Render Base Pace Progression Chart (Chronological left-to-right)
     function renderPaceChart(data) {
