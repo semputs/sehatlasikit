@@ -935,14 +935,42 @@
       if (hmSubEl) hmSubEl.innerText = `Projected from ${dist}km run @ ${speed} km/h (Riegel Formula)`;
     }
 
-    // Helper to calculate the exact mean of valid numbers from window.dashboardData
-    function calculateAverage(arr) {
-      const validValues = arr.filter(v => v !== null && v !== undefined && !isNaN(v) && v > 0);
-      if (validValues.length === 0) return 0;
-      const sum = validValues.reduce((a, b) => a + b, 0);
-      return (sum / validValues.length).toFixed(1);
-    }
-    
+// Helper to calculate the exact mean of valid numbers from window.dashboardData
+function calculateAverage(arr) {
+  const validValues = arr.filter(v => v !== null && v !== undefined && !isNaN(v) && v > 0);
+  if (validValues.length === 0) return 0;
+  const sum = validValues.reduce((a, b) => a + b, 0);
+  return (sum / validValues.length).toFixed(1);
+}
+
+// Plugin to draw the average value text on the right margin of the chart line
+const rightAverageLabelPlugin = {
+  id: 'rightAverageLabel',
+  afterDraw(chart) {
+    const { ctx, chartArea: { right } } = chart;
+    chart.data.datasets.forEach((dataset, index) => {
+      if (dataset.label && dataset.label.includes('Overall Avg')) {
+        const meta = chart.getDatasetMeta(index);
+        if (meta.data && meta.data.length > 0) {
+          const yPos = meta.data[0].y;
+          // Extracts value inside parentheses (e.g. "88" or "8:55" or "6.2")
+          const match = dataset.label.match(/\(([^)\/]+)/);
+          const labelText = match ? match[1].trim() : '';
+
+          if (labelText) {
+            ctx.save();
+            ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.fillStyle = dataset.borderColor || '#ef4444';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(labelText, right + 6, yPos);
+            ctx.restore();
+          }
+        }
+      }
+    });
+  }
+};
     // 1. Render Weight Progression Chart (Chronological left-to-right)
     function renderWeightChart(data) {
       const weightEntries = data.filter(d => d.weight && d.weight !== '--');
@@ -982,7 +1010,6 @@ function renderFoodScoreChart(data) {
     return { date: d.date.slice(5), avgScore: avg };
   }).filter(d => d.avgScore !== null);
 
-  // Dynamically calculate overall average score
   const totalAvg = foodEntries.length > 0 
     ? Math.round(foodEntries.reduce((sum, item) => sum + item.avgScore, 0) / foodEntries.length)
     : 0;
@@ -990,6 +1017,7 @@ function renderFoodScoreChart(data) {
   const ctx = document.getElementById('foodScoreChart').getContext('2d');
   new Chart(ctx, {
     type: 'bar',
+    plugins: [rightAverageLabelPlugin],
     data: {
       labels: foodEntries.map(d => d.date),
       datasets: [
@@ -1003,7 +1031,7 @@ function renderFoodScoreChart(data) {
           type: 'line',
           label: `Overall Avg (${totalAvg})`,
           data: new Array(foodEntries.length).fill(totalAvg),
-          borderColor: '#ef4444', // Red dashed average line
+          borderColor: '#ef4444',
           borderDash: [5, 5],
           borderWidth: 2,
           pointRadius: 0,
@@ -1014,6 +1042,9 @@ function renderFoodScoreChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { right: 30 } // Right padding so number isn't cut off
+      },
       plugins: { legend: { display: false } },
       scales: {
         x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
@@ -1055,6 +1086,7 @@ function renderPaceChart(data) {
   const ctx = document.getElementById('paceChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
+    plugins: [rightAverageLabelPlugin], // Registers right-margin average label
     data: {
       labels: paceEntries.map(e => e.date),
       datasets: [
@@ -1082,6 +1114,9 @@ function renderPaceChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { right: 35 } // Right margin padding to prevent label clipping
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1183,13 +1218,13 @@ function renderSleepChart(data) {
 
   if (sleepEntries.length === 0) return;
 
-  // Dynamically calculate average sleep duration
   const totalSleep = sleepEntries.reduce((sum, item) => sum + item.hours, 0);
   const avgSleep = (totalSleep / sleepEntries.length).toFixed(1);
 
   const ctx = document.getElementById('sleepChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
+    plugins: [rightAverageLabelPlugin],
     data: {
       labels: sleepEntries.map(d => d.date),
       datasets: [
@@ -1206,7 +1241,7 @@ function renderSleepChart(data) {
         {
           label: `Overall Avg (${avgSleep} hrs)`,
           data: new Array(sleepEntries.length).fill(avgSleep),
-          borderColor: '#ef4444', // Red dashed threshold line
+          borderColor: '#ef4444',
           borderDash: [5, 5],
           borderWidth: 2,
           pointRadius: 0,
@@ -1217,6 +1252,9 @@ function renderSleepChart(data) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      layout: {
+        padding: { right: 30 }
+      },
       plugins: {
         legend: { display: false },
         tooltip: {
