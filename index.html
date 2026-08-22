@@ -1023,76 +1023,98 @@ function renderFoodScoreChart(data) {
   });
 }
 
-    // 3. Render Base Pace Progression Chart (Chronological left-to-right)
-    function renderPaceChart(data) {
-      const paceEntries = [];
-      data.forEach(d => {
-        if (!d.activity || d.activity === '--') return;
-        const match = d.activity.match(/(\d+(?:\.\d+)?)\s*km\/h/i);
-        if (match) {
-          const speed = parseFloat(match[1]);
-          const paceMins = 60 / speed;
-          paceEntries.push({
-            date: d.date.slice(5),
-            pace: paceMins,
-            speed: speed
-          });
-        }
+// 3. Render Base Pace Progression Chart (Chronological left-to-right)
+function renderPaceChart(data) {
+  const paceEntries = [];
+  data.forEach(d => {
+    if (!d.activity || d.activity === '--') return;
+    const match = d.activity.match(/(\d+(?:\.\d+)?)\s*km\/h/i);
+    if (match) {
+      const speed = parseFloat(match[1]);
+      const paceMins = 60 / speed;
+      paceEntries.push({
+        date: d.date.slice(5),
+        pace: paceMins,
+        speed: speed
       });
+    }
+  });
 
-      if (paceEntries.length === 0) return;
+  if (paceEntries.length === 0) return;
 
-      const ctx = document.getElementById('paceChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: paceEntries.map(e => e.date),
-          datasets: [{
-            data: paceEntries.map(e => e.pace.toFixed(2)),
-            borderColor: '#34d399',
-            backgroundColor: 'rgba(52, 211, 153, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointBackgroundColor: '#34d399'
-          }]
+  // Calculate dynamic average pace (in decimal minutes)
+  const totalPace = paceEntries.reduce((sum, e) => sum + e.pace, 0);
+  const avgPaceDecimal = totalPace / paceEntries.length;
+
+  // Convert decimal average pace to MM:SS label for legend
+  const avgSecs = Math.round(avgPaceDecimal * 60);
+  const avgMinsStr = Math.floor(avgSecs / 60);
+  const avgSecsStr = String(avgSecs % 60).padStart(2, '0');
+  const avgPaceLabel = `${avgMinsStr}:${avgSecsStr}`;
+
+  const ctx = document.getElementById('paceChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: paceEntries.map(e => e.date),
+      datasets: [
+        {
+          label: 'Pace',
+          data: paceEntries.map(e => e.pace.toFixed(2)),
+          borderColor: '#34d399',
+          backgroundColor: 'rgba(52, 211, 153, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#34d399'
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  const totalSecs = Math.round(context.raw * 60);
-                  const m = Math.floor(totalSecs / 60);
-                  const s = String(totalSecs % 60).padStart(2, '0');
-                  return ` Pace: ${m}:${s} /km`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
-            y: {
-              reverse: true, // Reversing Y-axis so faster pace trends UPWARDS
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              ticks: {
-                color: '#9ca3af',
-                font: { size: 9 },
-                callback: function(value) {
-                  const totalSecs = Math.round(value * 60);
-                  const m = Math.floor(totalSecs / 60);
-                  const s = String(totalSecs % 60).padStart(2, '0');
-                  return `${m}:${s}`;
-                }
-              }
+        {
+          label: `Overall Avg (${avgPaceLabel} /km)`,
+          data: new Array(paceEntries.length).fill(avgPaceDecimal.toFixed(2)),
+          borderColor: '#ef4444', // Red dashed average line
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const totalSecs = Math.round(context.raw * 60);
+              const m = Math.floor(totalSecs / 60);
+              const s = String(totalSecs % 60).padStart(2, '0');
+              return ` Pace: ${m}:${s} /km`;
             }
           }
         }
-      });
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+        y: {
+          reverse: true, // Reversing Y-axis so faster pace trends UPWARDS
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#9ca3af',
+            font: { size: 9 },
+            callback: function(value) {
+              const totalSecs = Math.round(value * 60);
+              const m = Math.floor(totalSecs / 60);
+              const s = String(totalSecs % 60).padStart(2, '0');
+              return `${m}:${s}`;
+            }
+          }
+        }
+      }
     }
+  });
+}
 
     // 4. Render Paginated Table with Meal Log Details
     function renderTable() {
@@ -1146,65 +1168,81 @@ function renderFoodScoreChart(data) {
       }
     }
 
-    // Render Sleep Duration Chart (Chronological left-to-right)
-    function renderSleepChart(data) {
-      const sleepEntries = data.map(d => {
-        let hours = null;
-        if (d.sleep && d.sleep !== '--') {
-          hours = parseFloat(d.sleep);
-        } else if (d.comments) {
-          const match = d.comments.match(/(?:slept|sleep)\D*?(\d+(?:\.\d+)?)\s*(?:h|hrs|hours)\b/i);
-          if (match) hours = parseFloat(match[1]);
-        }
-        return { date: d.date.slice(5), hours: hours };
-      }).filter(d => d.hours !== null && !isNaN(d.hours));
+// Render Sleep Duration Chart (Chronological left-to-right)
+function renderSleepChart(data) {
+  const sleepEntries = data.map(d => {
+    let hours = null;
+    if (d.sleep && d.sleep !== '--') {
+      hours = parseFloat(d.sleep);
+    } else if (d.comments) {
+      const match = d.comments.match(/(?:slept|sleep)\D*?(\d+(?:\.\d+)?)\s*(?:h|hrs|hours)\b/i);
+      if (match) hours = parseFloat(match[1]);
+    }
+    return { date: d.date.slice(5), hours: hours };
+  }).filter(d => d.hours !== null && !isNaN(d.hours));
 
-      if (sleepEntries.length === 0) return;
+  if (sleepEntries.length === 0) return;
 
-      const ctx = document.getElementById('sleepChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: sleepEntries.map(d => d.date),
-          datasets: [{
-            data: sleepEntries.map(d => d.hours),
-            borderColor: '#818cf8',
-            backgroundColor: 'rgba(129, 140, 248, 0.1)',
-            fill: true,
-            tension: 0.3,
-            pointRadius: 4,
-            pointBackgroundColor: '#818cf8'
-          }]
+  // Dynamically calculate average sleep duration
+  const totalSleep = sleepEntries.reduce((sum, item) => sum + item.hours, 0);
+  const avgSleep = (totalSleep / sleepEntries.length).toFixed(1);
+
+  const ctx = document.getElementById('sleepChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: sleepEntries.map(d => d.date),
+      datasets: [
+        {
+          label: 'Sleep Hours',
+          data: sleepEntries.map(d => d.hours),
+          borderColor: '#818cf8',
+          backgroundColor: 'rgba(129, 140, 248, 0.1)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 4,
+          pointBackgroundColor: '#818cf8'
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: false },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return ` Sleep: ${context.raw} hrs`;
-                }
-              }
-            }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
-            y: {
-              min: 0,
-              max: 10,
-              grid: { color: 'rgba(255,255,255,0.05)' },
-              ticks: {
-                color: '#9ca3af',
-                font: { size: 9 },
-                callback: function(value) { return value + 'h'; }
-              }
+        {
+          label: `Overall Avg (${avgSleep} hrs)`,
+          data: new Array(sleepEntries.length).fill(avgSleep),
+          borderColor: '#ef4444', // Red dashed threshold line
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return ` Sleep: ${context.raw} hrs`;
             }
           }
         }
-      });
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+        y: {
+          min: 0,
+          max: 10,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#9ca3af',
+            font: { size: 9 },
+            callback: function(value) { return value + 'h'; }
+          }
+        }
+      }
     }
+  });
+}
     
     document.addEventListener('DOMContentLoaded', initDashboard);
   </script>
