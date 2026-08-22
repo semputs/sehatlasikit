@@ -114,21 +114,23 @@ if 'id="last-updated">' in updated_html:
     p2 = updated_html.split('id="last-updated">')[1].split('</', 1)[1]
     updated_html = p1 + f'id="last-updated">{now_str}</' + p2
 
-# Helper function to replace element contents dynamically
-def update_stat_box(html, element_id, val, date_str):
+# Helper function to inject text into specific element IDs
+def update_element_by_id(html, element_id, value_text):
     if f'id="{element_id}"' in html:
         p1 = html.split(f'id="{element_id}">')[0]
         p2 = html.split(f'id="{element_id}">')[1].split('</', 1)[1]
-        
-        # Formats card with main metric and date tag underneath
-        content = f'{val}<span class="stat-date" style="display:block; font-size: 0.75rem; color: #888; font-weight: normal; margin-top: 4px;">{date_str}</span>'
-        return p1 + f'id="{element_id}">{content}</' + p2
+        return p1 + f'id="{element_id}">{value_text}</' + p2
     return html
 
-# Update HTML Metric Cards
-updated_html = update_stat_box(updated_html, "stat-weight", latest_weight, f"as of {latest_weight_date}" if latest_weight_date else "")
-updated_html = update_stat_box(updated_html, "stat-speed", peak_speed_str, f"hit on {peak_speed_date}" if peak_speed_date else "")
-updated_html = update_stat_box(updated_html, "stat-distance", peak_dist_str, f"hit on {peak_distance_date}" if peak_distance_date else "")
+# Update Values
+updated_html = update_element_by_id(updated_html, "kpi-weight", latest_weight)
+updated_html = update_element_by_id(updated_html, "kpi-speed", peak_speed_str)
+updated_html = update_element_by_id(updated_html, "kpi-distance", peak_dist_str)
+
+# Update Date Subtitles
+updated_html = update_element_by_id(updated_html, "kpi-weight-date", f"as of {latest_weight_date}" if latest_weight_date else "--")
+updated_html = update_element_by_id(updated_html, "kpi-speed-date", f"hit on {peak_speed_date}" if peak_speed_date else "--")
+updated_html = update_element_by_id(updated_html, "kpi-distance-date", f"hit on {peak_distance_date}" if peak_distance_date else "--")
 
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(updated_html)
