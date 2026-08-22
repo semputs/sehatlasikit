@@ -10,7 +10,7 @@ SHEET_CSV_URL = os.environ.get("SHEET_CSV_URL")
 if not SHEET_CSV_URL:
     raise ValueError("SHEET_CSV_URL secret is not set in GitHub Secrets.")
 
-print(f"Fetching spreadsheet data from CSV URL...")
+print("Fetching spreadsheet data from CSV URL...")
 response = requests.get(SHEET_CSV_URL)
 response.encoding = 'utf-8'
 
@@ -20,28 +20,63 @@ if response.status_code != 200 or "<html" in response.text.lower():
 csv_lines = response.text.splitlines()
 reader = csv.DictReader(csv_lines)
 
-# 2. Map CSV rows to dashboard JSON format
+# 2. Map CSV rows and calculate latest metrics
 dashboard_data = []
+
+latest_weight = "--"
+latest_weight_date = ""
+
+peak_speed = 0.0
+peak_speed_date = ""
+
+peak_distance = 0.0
+peak_distance_date = ""
+
 for row in reader:
-    # Normalize keys (strip whitespace, lowercase)
     r = {str(k).strip().lower(): str(v).strip() for k, v in row.items() if k}
-    
     date_val = r.get('date', '')
+    
     if date_val and date_val.lower() != 'date':
         comments_val = r.get('comments', '')
         
-        # Check for direct 'sleep' column first, fallback to regex extraction from comments
+        # Sleep extraction fallback
         sleep_val = r.get('sleep', '')
         if not sleep_val or sleep_val == '--':
             match = re.search(r'(?:slept|sleep)\D*?(\d+(?:\.\d+)?)\s*(?:h|hrs|hours)\b', comments_val, re.IGNORECASE)
             sleep_val = match.group(1) if match else '--'
 
+        weight_val = r.get('weight', '--')
+        activity_val = r.get('activity', '--')
+
+        # Track Current/Latest Weight
+        if weight_val not in ['--', '', '-']:
+            clean_wt = re.findall(r'\d+(?:\.\d+)?', weight_val)
+            if clean_wt:
+                latest_weight = f"{clean_wt[0]} kg"
+                latest_weight_date = date_val
+
+        # Track Peak Distance (e.g. 3.2km, 3.5 km)
+        dist_match = re.search(r'(\d+(?:\.\d+)?)\s*km\b', activity_val, re.IGNORECASE)
+        if dist_match:
+            dist_num = float(dist_match.group(1))
+            if dist_num > peak_distance:
+                peak_distance = dist_num
+                peak_distance_date = date_val
+
+        # Track Peak Speed (e.g. 7.4 km/h, speed 7.6)
+        spd_match = re.search(r'(?:speed|@|\b)(\d+\.\d+)\s*(?:km/h)?', activity_val, re.IGNORECASE)
+        if spd_match:
+            spd_num = float(spd_match.group(1))
+            if spd_num > peak_speed:
+                peak_speed = spd_num
+                peak_speed_date = date_val
+
         dashboard_data.append({
             "week": r.get('week', ''),
             "date": date_val,
             "day": r.get('day', ''),
-            "weight": r.get('weight', '--'),
-            "activity": r.get('activity', '--'),
+            "weight": weight_val,
+            "activity": activity_val,
             "breakfast": r.get('breakfast', '--'),
             "b_score": r.get('b_score', '--'),
             "lunch": r.get('lunch', '--'),
@@ -53,31 +88,49 @@ for row in reader:
         })
 
 print(f"Parsed {len(dashboard_data)} records from spreadsheet.")
-
 if len(dashboard_data) == 0:
-    raise ValueError("No records found in CSV. Check sheet tab position and column headers.")
+    raise ValueError("No records found in CSV.")
 
-# 3. Inject updated JSON into index.html
+# Formatted metric strings
+peak_speed_str = f"{peak_speed:.1f} km/h" if peak_speed > 0 else "--"
+peak_dist_str = f"{peak_distance:.2f} km" if peak_distance > 0 else "--"
+
+# 3. Inject updated data into index.html
 with open('index.html', 'r', encoding='utf-8') as f:
     html_content = f.read()
 
 if 'window.dashboardData =' not in html_content:
-    raise ValueError("Could not find 'window.dashboardData =' marker in index.html. Ensure line 214 starts with 'window.dashboardData ='.")
+    raise ValueError("Could not find 'window.dashboardData =' marker in index.html.")
 
 json_string = json.dumps(dashboard_data, indent=2)
-
 before = html_content.split('window.dashboardData =')[0]
 after = html_content.split('window.dashboardData =')[1].split(';', 1)[1]
 updated_html = before + f'window.dashboardData = {json_string};' + after
 
-# Update last-updated timestamp
+# Update Last Updated Header Timestamp
 if 'id="last-updated">' in updated_html:
     now_str = datetime.now().strftime("%b %d, %Y • %H:%M MYT")
     p1 = updated_html.split('id="last-updated">')[0]
-    p2 = updated_html.split('id="last-updated">')[1].split('</span>', 1)[1]
-    updated_html = p1 + f'id="last-updated">{now_str}</span>' + p2
+    p2 = updated_html.split('id="last-updated">')[1].split('</', 1)[1]
+    updated_html = p1 + f'id="last-updated">{now_str}</' + p2
+
+# Helper function to replace element contents dynamically
+def update_stat_box(html, element_id, val, date_str):
+    if f'id="{element_id}"' in html:
+        p1 = html.split(f'id="{element_id}">')[0]
+        p2 = html.split(f'id="{element_id}">')[1].split('</', 1)[1]
+        
+        # Formats card with main metric and date tag underneath
+        content = f'{val}<span class="stat-date" style="display:block; font-size: 0.75rem; color: #888; font-weight: normal; margin-top: 4px;">{date_str}</span>'
+        return p1 + f'id="{element_id}">{content}</' + p2
+    return html
+
+# Update HTML Metric Cards
+updated_html = update_stat_box(updated_html, "stat-weight", latest_weight, f"as of {latest_weight_date}" if latest_weight_date else "")
+updated_html = update_stat_box(updated_html, "stat-speed", peak_speed_str, f"hit on {peak_speed_date}" if peak_speed_date else "")
+updated_html = update_stat_box(updated_html, "stat-distance", peak_dist_str, f"hit on {peak_distance_date}" if peak_distance_date else "")
 
 with open('index.html', 'w', encoding='utf-8') as f:
     f.write(updated_html)
 
-print("Successfully injected latest spreadsheet records into index.html!")
+print("Successfully injected latest spreadsheet records and stat cards into index.html!")
