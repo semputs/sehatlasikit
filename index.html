@@ -988,27 +988,51 @@ function calculateAverage(arr) {
   return (sum / validValues.length).toFixed(1);
 }
 
-// Plugin to draw the average value text on the right margin of the chart line
+// Universal Plugin to render formatted average labels on the far right margin
 const rightAverageLabelPlugin = {
   id: 'rightAverageLabel',
   afterDraw(chart) {
     const { ctx, chartArea: { right } } = chart;
     chart.data.datasets.forEach((dataset, index) => {
-      if (dataset.label && dataset.label.includes('Overall Avg')) {
+      // Process datasets that contain average/overall target lines
+      if (dataset.label && (dataset.label.includes('Overall Avg') || dataset.label.includes('Avg'))) {
         const meta = chart.getDatasetMeta(index);
         if (meta.data && meta.data.length > 0) {
           const yPos = meta.data[0].y;
-          // Extracts value inside parentheses (e.g. "88" or "8:55" or "6.2")
-          const match = dataset.label.match(/\(([^)\/]+)/);
-          const labelText = match ? match[1].trim() : '';
+          
+          let displayLabel = '';
+          
+          // 1. Pace Average Label (e.g., "8:48 Pace")
+          if (dataset.label.includes('/km')) {
+            const match = dataset.label.match(/\(([^)\/]+)/);
+            if (match) displayLabel = `${match[1].trim()} Pace`;
+          } 
+          // 2. Speed Average Label (e.g., "6.9 Speed")
+          else if (dataset.label.includes('km/h')) {
+            const match = dataset.label.match(/\(([^)\s]+)/);
+            if (match) displayLabel = `${match[1].trim()} Speed`;
+          } 
+          // 3. Sleep Average Label (e.g., "5.4h")
+          else if (dataset.label.toLowerCase().includes('hrs') || dataset.label.toLowerCase().includes('sleep')) {
+            const match = dataset.label.match(/\(([^)\s]+)/);
+            if (match) displayLabel = `${match[1].trim()}h`;
+          } 
+          // 4. Food Score Average Label (e.g., "88.5")
+          else {
+            const match = dataset.label.match(/\(([^)]+)\)/);
+            displayLabel = match ? match[1].trim() : dataset.label;
+          }
 
-          if (labelText) {
+          if (displayLabel) {
             ctx.save();
             ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
             ctx.fillStyle = dataset.borderColor || '#ef4444';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
-            ctx.fillText(labelText, right + 6, yPos);
+            
+            // X-Offset: Shift further right for charts with dual Y-axes (Pace Chart)
+            const xOffset = dataset.yAxisID === 'y1' || chart.options.scales.y1 ? right + 50 : right + 8;
+            ctx.fillText(displayLabel, xOffset, yPos);
             ctx.restore();
           }
         }
@@ -1016,6 +1040,7 @@ const rightAverageLabelPlugin = {
     });
   }
 };
+
     // 1. Render Weight Progression Chart (Chronological left-to-right)
     function renderWeightChart(data) {
       const weightEntries = data.filter(d => d.weight && d.weight !== '--');
@@ -1047,7 +1072,7 @@ const rightAverageLabelPlugin = {
     }
 
     
-// 2. Render Daily Average Food Score Chart (Start from 50)
+// 2. Render Daily Average Food Score Chart
 function renderFoodScoreChart(data) {
   const foodEntries = data.map(d => {
     const scores = [parseFloat(d.b_score), parseFloat(d.l_score), parseFloat(d.d_score)].filter(s => !isNaN(s));
@@ -1056,13 +1081,13 @@ function renderFoodScoreChart(data) {
   }).filter(d => d.avgScore !== null);
 
   const totalAvg = foodEntries.length > 0 
-    ? Math.round(foodEntries.reduce((sum, item) => sum + item.avgScore, 0) / foodEntries.length)
+    ? (foodEntries.reduce((sum, item) => sum + item.avgScore, 0) / foodEntries.length).toFixed(1)
     : 0;
 
   const ctx = document.getElementById('foodScoreChart').getContext('2d');
   new Chart(ctx, {
     type: 'bar',
-    plugins: [rightAverageLabelPlugin],
+    plugins: [rightAverageLabelPlugin], // Enables right average label
     data: {
       labels: foodEntries.map(d => d.date),
       datasets: [
@@ -1088,7 +1113,7 @@ function renderFoodScoreChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       layout: {
-        padding: { right: 30 } // Right padding so number isn't cut off
+        padding: { right: 35 } // Room for right label
       },
       plugins: { legend: { display: false } },
       scales: {
@@ -1099,7 +1124,8 @@ function renderFoodScoreChart(data) {
   });
 }
 
-// 3. Render Base Pace Progression Chart (Chronological left-to-right)
+
+// 3. Render Base Pace & Speed Chart
 function renderPaceChart(data) {
   const paceEntries = [];
   data.forEach(d => {
@@ -1107,31 +1133,35 @@ function renderPaceChart(data) {
     const match = d.activity.match(/(\d+(?:\.\d+)?)\s*km\/h/i);
     if (match) {
       const speed = parseFloat(match[1]);
-      const paceMins = 60 / speed;
-      paceEntries.push({
-        date: d.date.slice(5),
-        pace: paceMins,
-        speed: speed
-      });
+      if (speed >= 4.0 && speed <= 15.0) {
+        const paceMins = 60 / speed;
+        paceEntries.push({
+          date: d.date.slice(5),
+          pace: paceMins,
+          speed: speed
+        });
+      }
     }
   });
 
   if (paceEntries.length === 0) return;
 
-  // Calculate dynamic average pace (in decimal minutes)
+  // 1. Dynamic Pace Average
   const totalPace = paceEntries.reduce((sum, e) => sum + e.pace, 0);
   const avgPaceDecimal = totalPace / paceEntries.length;
-
-  // Convert decimal average pace to MM:SS label for legend
   const avgSecs = Math.round(avgPaceDecimal * 60);
   const avgMinsStr = Math.floor(avgSecs / 60);
   const avgSecsStr = String(avgSecs % 60).padStart(2, '0');
   const avgPaceLabel = `${avgMinsStr}:${avgSecsStr}`;
 
+  // 2. Dynamic Speed Average
+  const totalSpeed = paceEntries.reduce((sum, e) => sum + e.speed, 0);
+  const avgSpeedVal = (totalSpeed / paceEntries.length).toFixed(1);
+
   const ctx = document.getElementById('paceChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
-    plugins: [rightAverageLabelPlugin], // Registers right-margin average label
+    plugins: [rightAverageLabelPlugin],
     data: {
       labels: paceEntries.map(e => e.date),
       datasets: [
@@ -1143,16 +1173,39 @@ function renderPaceChart(data) {
           fill: true,
           tension: 0.3,
           pointRadius: 4,
-          pointBackgroundColor: '#34d399'
+          pointBackgroundColor: '#34d399',
+          yAxisID: 'y'
+        },
+        {
+          label: 'Speed (km/h)',
+          data: paceEntries.map(e => e.speed),
+          borderColor: '#60a5fa',
+          borderDash: [2, 2],
+          borderWidth: 2,
+          pointRadius: 3,
+          pointBackgroundColor: '#60a5fa',
+          fill: false,
+          yAxisID: 'y1'
         },
         {
           label: `Overall Avg (${avgPaceLabel} /km)`,
           data: new Array(paceEntries.length).fill(avgPaceDecimal.toFixed(2)),
-          borderColor: '#ef4444', // Red dashed average line
+          borderColor: '#ef4444',
           borderDash: [5, 5],
           borderWidth: 2,
           pointRadius: 0,
-          fill: false
+          fill: false,
+          yAxisID: 'y'
+        },
+        {
+          label: `Overall Avg (${avgSpeedVal} km/h)`,
+          data: new Array(paceEntries.length).fill(parseFloat(avgSpeedVal)),
+          borderColor: '#3b82f6',
+          borderDash: [5, 5],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          yAxisID: 'y1'
         }
       ]
     },
@@ -1160,13 +1213,16 @@ function renderPaceChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       layout: {
-        padding: { right: 35 } // Right margin padding to prevent label clipping
+        padding: { right: 50 } // Expanded margin so "8:48 Pace" & "6.9 Speed" fit cleanly past y1 axis
       },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
             label: function(context) {
+              if (context.dataset.yAxisID === 'y1') {
+                return ` Speed: ${context.raw} km/h`;
+              }
               const totalSecs = Math.round(context.raw * 60);
               const m = Math.floor(totalSecs / 60);
               const s = String(totalSecs % 60).padStart(2, '0');
@@ -1178,10 +1234,13 @@ function renderPaceChart(data) {
       scales: {
         x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
         y: {
-          reverse: true, // Reversing Y-axis so faster pace trends UPWARDS
+          position: 'left',
+          reverse: true,
+          min: 60 / 11.0,
+          max: 60 / 5.5,
           grid: { color: 'rgba(255,255,255,0.05)' },
           ticks: {
-            color: '#9ca3af',
+            color: '#34d399',
             font: { size: 9 },
             callback: function(value) {
               const totalSecs = Math.round(value * 60);
@@ -1189,6 +1248,19 @@ function renderPaceChart(data) {
               const s = String(totalSecs % 60).padStart(2, '0');
               return `${m}:${s}`;
             }
+          }
+        },
+        y1: {
+          position: 'right',
+          reverse: false,
+          min: 5.5,
+          max: 11.0,
+          grid: { display: false },
+          ticks: {
+            color: '#60a5fa',
+            font: { size: 9 },
+            stepSize: 1.0,
+            callback: function(value) { return `${value.toFixed(1)} km/h`; }
           }
         }
       }
@@ -1248,7 +1320,7 @@ function renderPaceChart(data) {
       }
     }
 
-// Render Sleep Duration Chart (Chronological left-to-right)
+// Render Sleep Duration Chart
 function renderSleepChart(data) {
   const sleepEntries = data.map(d => {
     let hours = null;
@@ -1269,7 +1341,7 @@ function renderSleepChart(data) {
   const ctx = document.getElementById('sleepChart').getContext('2d');
   new Chart(ctx, {
     type: 'line',
-    plugins: [rightAverageLabelPlugin],
+    plugins: [rightAverageLabelPlugin], // Enables right average label
     data: {
       labels: sleepEntries.map(d => d.date),
       datasets: [
@@ -1298,15 +1370,13 @@ function renderSleepChart(data) {
       responsive: true,
       maintainAspectRatio: false,
       layout: {
-        padding: { right: 30 }
+        padding: { right: 35 } // Room for right label
       },
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: function(context) {
-              return ` Sleep: ${context.raw} hrs`;
-            }
+            label: function(context) { return ` Sleep: ${context.raw} hrs`; }
           }
         }
       },
@@ -1325,8 +1395,7 @@ function renderSleepChart(data) {
       }
     }
   });
-}
-    
+}    
     document.addEventListener('DOMContentLoaded', initDashboard);
   </script>
 </body>
