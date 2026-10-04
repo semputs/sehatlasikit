@@ -82,7 +82,7 @@
   </section>
 
   <!-- 2. Priority Metrics Grid -->
-<section class="grid grid-cols-3 gap-2 mb-4">
+  <section class="grid grid-cols-3 gap-2 mb-4">
     <!-- Weight Progression -->
     <div class="card p-3">
       <p class="text-[10px] text-gray-400 uppercase">Current Wt</p>
@@ -140,6 +140,14 @@
     <h2 class="text-xs font-semibold text-gray-300 mb-3">⚡ Base Pace Progression (/km)</h2>
     <div class="h-40 w-full">
       <canvas id="paceChart"></canvas>
+    </div>
+  </section>
+
+  <!-- 5.5. Weekly Distance Volume Chart -->
+  <section class="card p-4 mb-4">
+    <h2 class="text-xs font-semibold text-gray-300 mb-3">📊 Weekly Distance Volume (km)</h2>
+    <div class="h-40 w-full">
+      <canvas id="weeklyDistanceChart"></canvas>
     </div>
   </section>
   
@@ -1513,6 +1521,7 @@
       renderFoodScoreChart(data);
       renderSleepChart(data);
       renderPaceChart(data);
+      renderWeeklyDistanceChart(data);
       calculatePaceAndHM(data);
 
       const weekMap = {};
@@ -1617,7 +1626,7 @@ const rightAverageLabelPlugin = {
             const match = dataset.label.match(/\(([^)\s]+)/);
             if (match) displayLabel = `${match[1].trim()}h`;
           } 
-          // 4. Food Score Average Label (e.g., "88.5")
+          // 4. Food Score / Distance Average Label (e.g., "88.5" or "12.4 km")
           else {
             const match = dataset.label.match(/\(([^)]+)\)/);
             displayLabel = match ? match[1].trim() : dataset.label;
@@ -1861,6 +1870,105 @@ function renderPaceChart(data) {
             font: { size: 9 },
             stepSize: 1.0,
             callback: function(value) { return `${value.toFixed(1)} km/h`; }
+          }
+        }
+      }
+    }
+  });
+}
+
+// 3.5 Render Weekly Distance Volume Chart
+function renderWeeklyDistanceChart(data) {
+  const weekTotals = {};
+
+  data.forEach(d => {
+    if (!d.activity || d.activity === '--') return;
+    
+    // Extract distance from activity string
+    let dist = 0;
+    let distMatch = d.activity.match(/(\d+(?:\.\d+)?)\s*km\b/i);
+    if (!distMatch) {
+      distMatch = d.activity.match(/distance\s*(\d+(?:\.\d+)?)/i);
+    }
+    
+    if (distMatch) {
+      dist = parseFloat(distMatch[1]);
+    }
+
+    if (d.week) {
+      if (!weekTotals[d.week]) {
+        weekTotals[d.week] = 0;
+      }
+      weekTotals[d.week] += dist;
+    }
+  });
+
+  // Sort weeks chronologically
+  const sortedWeekLabels = Object.keys(weekTotals).sort((a, b) => {
+    const numA = parseInt(a.replace(/\D/g, '')) || 0;
+    const numB = parseInt(b.replace(/\D/g, '')) || 0;
+    return numA - numB;
+  });
+
+  const weekDistances = sortedWeekLabels.map(w => parseFloat(weekTotals[w].toFixed(2)));
+
+  // Calculate overall weekly average
+  const totalKm = weekDistances.reduce((sum, v) => sum + v, 0);
+  const avgWeeklyKm = weekDistances.length > 0 ? (totalKm / weekDistances.length).toFixed(1) : 0;
+
+  const ctx = document.getElementById('weeklyDistanceChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'bar',
+    plugins: [rightAverageLabelPlugin],
+    data: {
+      labels: sortedWeekLabels,
+      datasets: [
+        {
+          label: 'Total Distance (km)',
+          data: weekDistances,
+          backgroundColor: '#34d399',
+          borderRadius: 6
+        },
+        {
+          type: 'line',
+          label: `Overall Avg (${avgWeeklyKm} km)`,
+          data: new Array(weekDistances.length).fill(parseFloat(avgWeeklyKm)),
+          borderColor: '#ef4444',
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: {
+        padding: { right: 35 }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              if (context.dataset.type === 'line') {
+                return ` Avg: ${context.raw} km/wk`;
+              }
+              return ` Total: ${context.raw} km`;
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#9ca3af', font: { size: 9 } } },
+        y: {
+          beginAtZero: true,
+          grid: { color: 'rgba(255,255,255,0.05)' },
+          ticks: {
+            color: '#9ca3af',
+            font: { size: 9 },
+            callback: function(value) { return value + ' km'; }
           }
         }
       }
