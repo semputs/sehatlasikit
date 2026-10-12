@@ -21,21 +21,32 @@
   
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>Chart.defaults.font.family = "Nunito, ui-rounded, system-ui, sans-serif";</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Nunito:wght@400;600;700;800;900&family=Quicksand:wght@600;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      background-color: #090d16;
-      color: #f3f4f6;
-      font-family: system-ui, -apple-system, sans-serif;
-      min-height: 100vh;
-    }
-    .card {
-      background-color: #111827;
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 1rem;
-    }
-    .lime-text { color: #a3e635; }
-    .lime-bg { background-color: #a3e635; }
-    .gold-text { color: #fbbf24; }
+    body { background-color: #0D1230; color: #E8ECFF; font-family: "Nunito", ui-rounded, system-ui, -apple-system, "Segoe UI", sans-serif; min-height: 100vh; }
+    .card { background-color: #161D45; border: 1px solid #262F66; border-radius: 1rem; }
+    .lime-text { color: #7189FF; }
+    .lime-bg { background-color: #7189FF; }
+    .gold-text { color: #A9B8FF; }
+    body .text-emerald-400, body .text-lime-400 { color: #7189FF; }
+    body .text-amber-400 { color: #A9B8FF; }
+    body .text-white, body .text-gray-200 { color: #E8ECFF; }
+    body .text-gray-300 { color: #CBD2F5; }
+    body .text-gray-400 { color: #A6AFDA; }
+    body .text-gray-500 { color: #8089B8; }
+    body .bg-black\/40, body .bg-black\/30 { background-color: #0F1538; }
+    body .border-white\/10, body .border-white\/5 { border-color: #262F66; }
+    body .divide-white\/5 > * + * { border-color: #262F66; }
+    body .bg-lime-400\/20 { background-color: rgba(113, 137, 255, 0.2); }
+    body .border-lime-400\/30 { border-color: rgba(113, 137, 255, 0.4); }
+    body .from-black\/90 { --tw-gradient-from: rgba(13, 18, 48, 0.92) var(--tw-gradient-from-position); --tw-gradient-to: rgba(13, 18, 48, 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+    body .via-black\/40 { --tw-gradient-to: rgba(13, 18, 48, 0) var(--tw-gradient-to-position); --tw-gradient-stops: var(--tw-gradient-from), rgba(13, 18, 48, 0.4) var(--tw-gradient-via-position), var(--tw-gradient-to); }
+    body .hover\:bg-white\/5:hover { background-color: rgba(113, 137, 255, 0.08); }
+      body .font-mono, body button { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; }
+    body h1, body h2, body .font-black, body .font-bold { font-family: "Quicksand", "Nunito", ui-rounded, system-ui, sans-serif; font-weight: 700; }
   </style>
 </head>
 <body class="p-4 pb-12 max-w-md mx-auto">
@@ -1756,7 +1767,7 @@ const rightAverageLabelPlugin = {
 
           if (displayLabel) {
             ctx.save();
-            ctx.font = 'bold 11px -apple-system, BlinkMacSystemFont, sans-serif';
+            ctx.font = 'bold 11px Nunito, -apple-system, sans-serif';
             ctx.fillStyle = dataset.borderColor || '#ef4444';
             ctx.textAlign = 'left';
             ctx.textBaseline = 'middle';
